@@ -1,0 +1,121 @@
+<%= form_with(model: [:admin, tenant], local: true) do |form| %>
+  <% if tenant.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(tenant.errors.count, "erro") %> impediram que este tenant fosse guardado:</h5>
+      <ul class="mb-0">
+        <% tenant.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :name, 'Nome da Empresa', class: 'form-label' %>
+        <%= form.text_field :name, class: 'form-control', required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :subdomain, 'Subdomínio', class: 'form-label' %>
+        <%= form.text_field :subdomain, class: 'form-control', required: true %>
+        <small class="form-text text-muted">Usado para identificação única (ex: empresa123)</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= form.label :status, 'Estado', class: 'form-label' %>
+        <%= form.select :status,
+            [['Ativo', 'active'], ['Expirado', 'expired'], ['Suspenso', 'suspended']],
+            {},
+            class: 'form-select',
+            required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= form.label :subscription_start, 'Início da Subscrição', class: 'form-label' %>
+        <%= form.date_field :subscription_start, class: 'form-control' %>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= form.label :subscription_end, 'Fim da Subscrição', class: 'form-label' %>
+        <%= form.date_field :subscription_end, class: 'form-control' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :logo, 'Logotipo', class: 'form-label' %>
+    <%= form.file_field :logo, class: 'form-control', accept: 'image/*' %>
+    <% if tenant.logo.attached? %>
+      <div class="mt-2">
+        <%= image_tag tenant.logo, style: 'max-height: 100px;', class: 'img-thumbnail' %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header">
+      <h5 class="mb-0">Configurações de Branding</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Cor Primária</label>
+            <input type="color" name="tenant[settings][primary_color]"
+                   value="<%= tenant.settings['primary_color'] || '#007bff' %>"
+                   class="form-control form-control-color">
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Cor Secundária</label>
+            <input type="color" name="tenant[settings][secondary_color]"
+                   value="<%= tenant.settings['secondary_color'] || '#6c757d' %>"
+                   class="form-control form-control-color">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Moeda</label>
+            <input type="text" name="tenant[settings][currency]"
+                   value="<%= tenant.settings['currency'] || 'AOA' %>"
+                   class="form-control"
+                   placeholder="AOA">
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Taxa de Imposto (%)</label>
+            <input type="number" name="tenant[settings][tax_rate]"
+                   value="<%= tenant.settings['tax_rate'] || 14 %>"
+                   class="form-control"
+                   step="0.01"
+                   placeholder="14">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= form.submit 'Guardar', class: 'btn btn-primary' %>
+    <%= link_to 'Cancelar', tenant.persisted? ? admin_tenant_path(tenant) : admin_tenants_path, class: 'btn btn-secondary' %>
+  </div>
+<% end %>

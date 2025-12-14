@@ -1,0 +1,16 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-plus-circle"></i> Nova Fatura</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Painel', root_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Faturas', invoices_path %></li>
+          <li class="breadcrumb-item active">Nova</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <%= render 'form', invoice: @invoice %>
+</div>

@@ -1,0 +1,152 @@
+<% company_settings = Tenant.first&.company_setting %>
+
+<style>
+  .password-reset-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  <% if company_settings&.logo&.attached? %>
+  .password-reset-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    background-image: url('<%= url_for(company_settings.logo) %>');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.05;
+    z-index: 0;
+  }
+  <% end %>
+
+  .password-reset-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 50px 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 450px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .password-reset-logo {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .password-reset-logo img {
+    max-width: 180px;
+    max-height: 80px;
+    margin-bottom: 15px;
+  }
+
+  .password-reset-logo h2 {
+    color: #333;
+    font-weight: 700;
+    margin: 0;
+    font-size: 28px;
+  }
+
+  .password-reset-logo p {
+    color: #666;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+
+  .password-reset-form .form-label {
+    color: #444;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .password-reset-form .form-control {
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+  }
+
+  .password-reset-form .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.1);
+  }
+
+  .password-reset-form .btn-reset {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .password-reset-form .btn-reset:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .password-reset-links {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .password-reset-links a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+  }
+
+  .password-reset-links a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+  }
+</style>
+
+<div class="password-reset-wrapper">
+  <div class="password-reset-card">
+    <div class="password-reset-logo">
+      <% if company_settings&.logo&.attached? %>
+        <%= image_tag company_settings.logo, alt: company_settings&.company_name || 'CRM 3K' %>
+      <% end %>
+      <h2>Esqueceu a senha?</h2>
+      <p>Insira seu email para receber instruções de redefinição</p>
+    </div>
+
+    <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { class: 'password-reset-form', data: { turbo_method: :post } }) do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
+
+      <div class="mb-3">
+        <%= f.label :email, 'Email', class: 'form-label' %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", class: 'form-control', placeholder: 'seu@email.com' %>
+      </div>
+
+      <div class="mt-4">
+        <%= f.submit "Enviar instruções", class: 'btn btn-reset' %>
+      </div>
+    <% end %>
+
+    <div class="password-reset-links">
+      <%= link_to "← Voltar ao login", new_session_path(resource_name) %>
+    </div>
+  </div>
+</div>

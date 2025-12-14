@@ -1,0 +1,157 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-receipt"></i> Faturas</h1>
+    </div>
+    <div class="col-auto">
+      <%= link_to pricing_calculator_invoices_path, class: 'btn btn-info me-2' do %>
+        <i class="bi bi-calculator"></i> Calculadora de Preços
+      <% end %>
+      <%= link_to new_invoice_path, class: 'btn btn-primary' do %>
+        <i class="bi bi-plus-circle"></i> Nova Fatura
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Pending Invoices -->
+  <% if @pending_invoices.any? %>
+    <div class="card mb-4">
+      <div class="card-header bg-danger text-white">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Faturas Pendentes (<%= @pending_invoices.count %>)</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Cliente</th>
+                <th>Tipo</th>
+                <th>Data</th>
+                <th>Vencimento</th>
+                <th class="text-end">Valor Total</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @pending_invoices.each do |invoice| %>
+                <tr>
+                  <td>
+                    <%= link_to invoice.invoice_number, invoice, class: 'text-decoration-none fw-bold' %>
+                  </td>
+                  <td><%= invoice.customer.name %></td>
+                  <td>
+                    <span class="badge bg-secondary"><%= invoice.invoice_type.humanize %></span>
+                  </td>
+                  <td><%= invoice.invoice_date.strftime('%d/%m/%Y') %></td>
+                  <td>
+                    <% if invoice.due_date %>
+                      <span class="badge bg-<%= invoice.due_date < Date.today ? 'danger' : 'warning' %>">
+                        <%= invoice.due_date.strftime('%d/%m/%Y') %>
+                      </span>
+                    <% else %>
+                      <span class="text-muted">-</span>
+                    <% end %>
+                  </td>
+                  <td class="text-end"><strong class="text-danger"><%= number_to_currency(invoice.total_value, unit: "AOA") %></strong></td>
+                  <td class="text-end">
+                    <%= link_to invoice, class: 'btn btn-sm btn-outline-primary' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                    <%= link_to edit_invoice_path(invoice), class: 'btn btn-sm btn-outline-secondary' do %>
+                      <i class="bi bi-pencil"></i>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Partial Payment Invoices -->
+  <% if @partial_invoices.any? %>
+    <div class="card mb-4">
+      <div class="card-header bg-warning">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Faturas Parcialmente Pagas (<%= @partial_invoices.count %>)</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th class="text-end">Total</th>
+                <th class="text-end">Pago</th>
+                <th class="text-end">Saldo</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @partial_invoices.each do |invoice| %>
+                <tr>
+                  <td><%= link_to invoice.invoice_number, invoice, class: 'text-decoration-none fw-bold' %></td>
+                  <td><%= invoice.customer.name %></td>
+                  <td><%= invoice.invoice_date.strftime('%d/%m/%Y') %></td>
+                  <td class="text-end"><%= number_to_currency(invoice.total_value, unit: "AOA") %></td>
+                  <td class="text-end text-success"><%= number_to_currency(invoice.paid_value, unit: "AOA") %></td>
+                  <td class="text-end text-warning"><strong><%= number_to_currency(invoice.balance, unit: "AOA") %></strong></td>
+                  <td class="text-end">
+                    <%= link_to invoice, class: 'btn btn-sm btn-outline-primary' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Paid Invoices -->
+  <div class="card">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0"><i class="bi bi-check-circle"></i> Faturas Pagas Recentes</h5>
+    </div>
+    <div class="card-body p-0">
+      <% if @paid_invoices.any? %>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th class="text-end">Valor</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @paid_invoices.each do |invoice| %>
+                <tr>
+                  <td><%= link_to invoice.invoice_number, invoice %></td>
+                  <td><%= invoice.customer.name %></td>
+                  <td><%= invoice.invoice_date.strftime('%d/%m/%Y') %></td>
+                  <td class="text-end"><%= number_to_currency(invoice.total_value, unit: "AOA") %></td>
+                  <td class="text-end">
+                    <%= link_to invoice, class: 'btn btn-sm btn-outline-primary' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="text-muted p-3 mb-0">Nenhuma fatura paga</p>
+      <% end %>
+    </div>
+  </div>
+</div>

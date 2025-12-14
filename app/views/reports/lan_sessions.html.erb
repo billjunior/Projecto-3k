@@ -1,0 +1,131 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-pc-display"></i> Relatório de Sessões LAN</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Relatórios', reports_path %></li>
+          <li class="breadcrumb-item active">Sessões LAN</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <%= link_to lan_sessions_reports_path(month: @month, year: @year, format: :pdf), class: 'btn btn-danger', target: '_blank' do %>
+        <i class="bi bi-file-pdf"></i> Exportar PDF
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Filtro de Mês/Ano -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: lan_sessions_reports_path, method: :get, class: 'row g-3' do |f| %>
+        <div class="col-md-4">
+          <label class="form-label">Mês</label>
+          <%= select_tag :month, options_for_select(opcoes_meses, @month), class: 'form-select' %>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Ano</label>
+          <%= select_tag :year, options_for_select((2025..2040).to_a.reverse, @year), class: 'form-select' %>
+        </div>
+        <div class="col-md-4">
+          <%= submit_tag 'Filtrar', class: 'btn btn-primary', style: 'margin-top: 32px;' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Estatísticas -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body text-center">
+          <h6>Total de Sessões</h6>
+          <h2><%= @total_sessions %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body text-center">
+          <h6>Sessões Fechadas</h6>
+          <h2><%= @closed_sessions %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body text-center">
+          <h6>Sessões Ativas</h6>
+          <h2><%= @active_sessions %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-warning text-dark">
+        <div class="card-body text-center">
+          <h6>Receita Total</h6>
+          <h2><%= number_to_currency(@total_revenue + @active_revenue, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela de Sessões -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Sessões de <%= nome_mes(@month) %> de <%= @year %></h5>
+    </div>
+    <div class="card-body p-0">
+      <% if @sessions.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Máquina</th>
+                <th>Cliente</th>
+                <th>Início</th>
+                <th>Fim</th>
+                <th>Duração</th>
+                <th class="text-end">Valor</th>
+                <th class="text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @sessions.each do |session| %>
+                <tr>
+                  <td><%= session.lan_machine.name %></td>
+                  <td><%= session.customer&.name || 'Anônimo' %></td>
+                  <td><%= session.start_time.strftime('%d/%m/%Y %H:%M') %></td>
+                  <td><%= session.end_time ? session.end_time.strftime('%d/%m/%Y %H:%M') : '-' %></td>
+                  <td>
+                    <% if session.status == 'fechada' %>
+                      <%= session.total_minutes %> min
+                    <% else %>
+                      <%= session.formatted_elapsed_time %>
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <%= number_to_currency(session.status == 'fechada' ? session.total_value : session.current_value, unit: 'AOA', separator: ',', delimiter: '.') %>
+                  </td>
+                  <td class="text-center">
+                    <% if session.status == 'aberta' %>
+                      <span class="badge bg-success">Ativa</span>
+                    <% else %>
+                      <span class="badge bg-secondary">Fechada</span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1"></i>
+          <p class="mt-2">Nenhuma sessão registrada neste período</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

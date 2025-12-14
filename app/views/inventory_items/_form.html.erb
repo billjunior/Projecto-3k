@@ -1,0 +1,65 @@
+<%= form_with(model: inventory_item, local: true, class: 'needs-validation', novalidate: true) do |form| %>
+  <% if inventory_item.errors.any? %>
+    <div class="alert alert-danger">
+      <h4 class="alert-heading">
+        <%= pluralize(inventory_item.errors.count, "erro impediu", "erros impediram") %> que este produto fosse salvo:
+      </h4>
+      <ul class="mb-0">
+        <% inventory_item.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <%= form.label :product_name, 'Nome do Produto *', class: 'form-label' %>
+      <%= form.text_field :product_name, class: 'form-control', required: true, autofocus: true %>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <%= form.label :supplier_phone, 'Telefone do Fornecedor *', class: 'form-label' %>
+      <%= form.text_field :supplier_phone, class: 'form-control', required: true, placeholder: '+244 XXX XXX XXX' %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <%= form.label :gross_quantity, 'Quantidade Bruta *', class: 'form-label' %>
+      <%= form.number_field :gross_quantity, class: 'form-control', required: true, step: '0.01', min: '0' %>
+      <div class="form-text">Quantidade total adquirida</div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <%= form.label :net_quantity, 'Quantidade Líquida *', class: 'form-label' %>
+      <%= form.number_field :net_quantity, class: 'form-control', required: true, step: '0.01', min: '0' %>
+      <div class="form-text">Quantidade disponível em stock</div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <%= form.label :minimum_stock, 'Stock Mínimo *', class: 'form-label' %>
+      <%= form.number_field :minimum_stock, class: 'form-control', required: true, min: '0' %>
+      <div class="form-text">Alerta quando atingir este valor</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <%= form.label :purchase_price, 'Preço de Compra (AOA) *', class: 'form-label' %>
+      <%= form.number_field :purchase_price, class: 'form-control', required: true, step: '0.01', min: '0' %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12 mb-3">
+      <%= form.label :notes, 'Notas / Observações', class: 'form-label' %>
+      <%= form.text_area :notes, class: 'form-control', rows: 3, placeholder: 'Informações adicionais sobre o produto...' %>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between">
+    <%= link_to 'Cancelar', inventory_items_path, class: 'btn btn-secondary' %>
+    <%= form.submit inventory_item.new_record? ? 'Criar Produto' : 'Atualizar Produto', class: 'btn btn-primary' %>
+  </div>
+<% end %>

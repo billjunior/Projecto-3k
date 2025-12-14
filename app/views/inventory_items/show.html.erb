@@ -1,0 +1,185 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-box-seam"></i> <%= @inventory_item.product_name %></h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Cyber Café', lan_machines_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Inventário', inventory_items_path %></li>
+          <li class="breadcrumb-item active" aria-current="page"><%= @inventory_item.product_name %></li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <%= link_to edit_inventory_item_path(@inventory_item), class: 'btn btn-primary me-2' do %>
+        <i class="bi bi-pencil"></i> Editar
+      <% end %>
+      <%= link_to inventory_items_path, class: 'btn btn-secondary' do %>
+        <i class="bi bi-arrow-left"></i> Voltar
+      <% end %>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <!-- Product Info Card -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informações do Produto</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm">
+            <tbody>
+              <tr>
+                <th width="40%">Nome:</th>
+                <td><strong><%= @inventory_item.product_name %></strong></td>
+              </tr>
+              <tr>
+                <th>Fornecedor:</th>
+                <td><i class="bi bi-phone"></i> <%= @inventory_item.supplier_phone %></td>
+              </tr>
+              <tr>
+                <th>Qtd. Bruta:</th>
+                <td><%= number_with_precision(@inventory_item.gross_quantity, precision: 2, delimiter: ".", separator: ",") %></td>
+              </tr>
+              <tr>
+                <th>Qtd. Líquida:</th>
+                <td><strong class="fs-5"><%= number_with_precision(@inventory_item.net_quantity, precision: 2, delimiter: ".", separator: ",") %></strong></td>
+              </tr>
+              <tr>
+                <th>Stock Mínimo:</th>
+                <td><%= @inventory_item.minimum_stock %></td>
+              </tr>
+              <tr>
+                <th>Preço de Compra:</th>
+                <td><%= number_to_currency(@inventory_item.purchase_price, unit: "AOA", separator: ",", delimiter: ".") %></td>
+              </tr>
+              <tr>
+                <th>Status:</th>
+                <td>
+                  <%= content_tag :span, class: "badge bg-#{@inventory_item.stock_status_badge_class}" do %>
+                    <% case @inventory_item.stock_status %>
+                    <% when 'out_of_stock' %>
+                      Sem Stock
+                    <% when 'low_stock' %>
+                      Stock Baixo
+                    <% else %>
+                      Normal
+                    <% end %>
+                  <% end %>
+                </td>
+              </tr>
+              <% if @inventory_item.notes.present? %>
+                <tr>
+                  <th>Notas:</th>
+                  <td><%= @inventory_item.notes %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Movement Form -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Registar Movimento</h5>
+        </div>
+        <div class="card-body">
+          <%= form_with(model: [@inventory_item, InventoryMovement.new], local: true) do |form| %>
+            <div class="mb-3">
+              <%= form.label :movement_type, 'Tipo de Movimento *', class: 'form-label' %>
+              <%= form.select :movement_type,
+                  options_for_select([['Entrada (Compra)', 'entry'], ['Saída (Venda/Uso)', 'exit']]),
+                  {},
+                  class: 'form-select',
+                  required: true %>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :quantity, 'Quantidade *', class: 'form-label' %>
+              <%= form.number_field :quantity, class: 'form-control', required: true, step: '0.01', min: '0.01' %>
+              <div class="form-text">Quantidade a adicionar ou remover</div>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :date, 'Data *', class: 'form-label' %>
+              <%= form.date_field :date, class: 'form-control', required: true, value: Date.today %>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :notes, 'Notas', class: 'form-label' %>
+              <%= form.text_area :notes, class: 'form-control', rows: 2, placeholder: 'Observações sobre este movimento...' %>
+            </div>
+
+            <%= form.submit 'Registar Movimento', class: 'btn btn-primary w-100' %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Movement History -->
+  <div class="card">
+    <div class="card-header bg-light">
+      <h5 class="mb-0"><i class="bi bi-clock-history"></i> Histórico de Movimentos</h5>
+    </div>
+    <div class="card-body p-0">
+      <% if @movements.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Tipo</th>
+                <th class="text-end">Quantidade</th>
+                <th>Notas</th>
+                <th>Registado Por</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @movements.each do |movement| %>
+                <tr>
+                  <td><%= movement.date.strftime('%d/%m/%Y') %></td>
+                  <td>
+                    <% if movement.entry? %>
+                      <span class="badge bg-success"><i class="bi bi-arrow-down-circle"></i> Entrada</span>
+                    <% else %>
+                      <span class="badge bg-danger"><i class="bi bi-arrow-up-circle"></i> Saída</span>
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <strong><%= number_with_precision(movement.quantity, precision: 2, delimiter: ".", separator: ",") %></strong>
+                  </td>
+                  <td><%= movement.notes %></td>
+                  <td>
+                    <% if movement.created_by_user %>
+                      <i class="bi bi-person"></i> <%= movement.created_by_user.email %>
+                    <% else %>
+                      <span class="text-muted">-</span>
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <%= link_to inventory_item_inventory_movement_path(@inventory_item, movement),
+                        data: { turbo_method: :delete, turbo_confirm: 'Tem certeza que deseja remover este movimento? O stock será ajustado automaticamente.' },
+                        class: 'btn btn-sm btn-outline-danger' do %>
+                      <i class="bi bi-trash"></i>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-clock-history fs-1"></i>
+          <p class="mt-2">Nenhum movimento registado</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

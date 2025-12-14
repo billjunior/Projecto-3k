@@ -1,0 +1,147 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-calculator"></i> Calculadora de Preços Inteligente</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Faturas', invoices_path %></li>
+          <li class="breadcrumb-item active">Calculadora de Preços</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="bi bi-input-cursor-text"></i> Inserir Custos</h5>
+        </div>
+        <div class="card-body">
+          <%= form_with url: calculate_price_invoices_path, method: :post, data: { turbo_frame: 'pricing_result' } do |f| %>
+            <div class="mb-3">
+              <label class="form-label">Custo de Mão de Obra (AOA)</label>
+              <input type="number" name="labor_cost" class="form-control" step="0.01" min="0" placeholder="0.00" value="0">
+              <small class="form-text text-muted">Custo total de trabalho/serviço</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Custo de Material (AOA)</label>
+              <input type="number" name="material_cost" class="form-control" step="0.01" min="0" placeholder="0.00" value="0">
+              <small class="form-text text-muted">Custo de materiais e insumos</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Preço de Compra (AOA)</label>
+              <input type="number" name="purchase_price" class="form-control" step="0.01" min="0" placeholder="0.00" value="0">
+              <small class="form-text text-muted">Preço de aquisição do produto</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Margem de Lucro (%)</label>
+              <div class="input-group">
+                <input type="number" name="profit_margin" id="profit_margin_input" class="form-control" step="1" min="0" max="150" placeholder="65" value="65">
+                <span class="input-group-text">%</span>
+              </div>
+              <input type="range" name="profit_margin_range" id="profit_margin_range" class="form-range mt-2" min="0" max="150" step="5" value="65">
+              <small class="form-text text-muted">Escolha entre 0% e 150% (padrão: 65%)</small>
+            </div>
+
+            <script>
+              // Sincronizar range slider com input number
+              const rangeInput = document.getElementById('profit_margin_range');
+              const numberInput = document.getElementById('profit_margin_input');
+
+              rangeInput.addEventListener('input', function() {
+                numberInput.value = this.value;
+              });
+
+              numberInput.addEventListener('input', function() {
+                let value = parseInt(this.value) || 65;
+                value = Math.max(0, Math.min(150, value));
+                rangeInput.value = value;
+                this.value = value;
+              });
+            </script>
+
+            <div class="d-grid">
+              <%= f.submit 'Calcular Preço Sugerido', class: 'btn btn-primary btn-lg' %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+          <h6 class="mb-0"><i class="bi bi-info-circle"></i> Como Funciona</h6>
+        </div>
+        <div class="card-body">
+          <p class="mb-2"><strong>Margem de Lucro:</strong> Configurável de 0% até 150% (padrão: 65%)</p>
+          <p class="mb-2"><strong>Arredondamento:</strong> Valores arredondados para múltiplos de 100 AOA (padrão do mercado angolano)</p>
+          <p class="mb-0"><strong>Fórmula:</strong> Preço Sugerido = (Custo Total) × (1 + Margem/100) ≈ 100</p>
+          <hr>
+          <h6>Exemplo com 65% de margem:</h6>
+          <ul class="mb-0">
+            <li>Mão de Obra: 5.000 AOA</li>
+            <li>Material: 3.000 AOA</li>
+            <li>Compra: 2.000 AOA</li>
+            <li><strong>Custo Total:</strong> 10.000 AOA</li>
+            <li><strong>Preço Sugerido:</strong> 16.500 AOA → 16.500 AOA</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <turbo-frame id="pricing_result">
+        <%= render 'pricing_result', calculator: @calculator %>
+      </turbo-frame>
+
+      <div class="card mt-4">
+        <div class="card-header bg-success text-white">
+          <h6 class="mb-0"><i class="bi bi-box"></i> Produtos com Custos Cadastrados</h6>
+        </div>
+        <div class="card-body">
+          <% if @products.select(&:has_cost_data?).any? %>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Produto</th>
+                    <th class="text-end">Custo Total</th>
+                    <th class="text-end">Preço Sugerido</th>
+                    <th class="text-end">Preço Base</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @products.select(&:has_cost_data?).first(10).each do |product| %>
+                    <tr>
+                      <td><%= product.name %></td>
+                      <td class="text-end">
+                        <%= number_to_currency(product.labor_cost + product.material_cost + product.purchase_price, unit: 'AOA', separator: ',', delimiter: '.') %>
+                      </td>
+                      <td class="text-end">
+                        <strong class="text-success">
+                          <%= number_to_currency(product.suggested_price, unit: 'AOA', separator: ',', delimiter: '.') %>
+                        </strong>
+                      </td>
+                      <td class="text-end">
+                        <%= number_to_currency(product.base_price, unit: 'AOA', separator: ',', delimiter: '.') %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% else %>
+            <div class="text-center text-muted py-3">
+              <i class="bi bi-inbox fs-1"></i>
+              <p class="mt-2">Nenhum produto com custos cadastrados</p>
+              <p class="small">Configure os custos nos produtos para ver sugestões automáticas</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

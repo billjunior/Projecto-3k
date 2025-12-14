@@ -1,0 +1,153 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1>
+        <i class="bi bi-file-earmark-text"></i> <%= @estimate.estimate_number %>
+        <span class="badge bg-<%= case @estimate.status
+          when 'rascunho' then 'secondary'
+          when 'pendente_aprovacao' then 'warning'
+          when 'aprovado' then 'success'
+          when 'recusado' then 'danger'
+          else 'secondary'
+        end %>">
+          <%= @estimate.status.humanize %>
+        </span>
+      </h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Painel', root_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Orçamentos', estimates_path %></li>
+          <li class="breadcrumb-item active"><%= @estimate.estimate_number %></li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <% if @estimate.status == 'rascunho' %>
+        <%= link_to edit_estimate_path(@estimate), class: 'btn btn-warning' do %>
+          <i class="bi bi-pencil"></i> Editar
+        <% end %>
+        <% if @estimate.can_submit_for_approval? %>
+          <%= link_to submit_for_approval_estimate_path(@estimate), data: { turbo_method: :post, turbo_confirm: 'Enviar para aprovação?' }, class: 'btn btn-primary' do %>
+            <i class="bi bi-send"></i> Enviar para Aprovação
+          <% end %>
+        <% end %>
+      <% elsif @estimate.status == 'pendente_aprovacao' %>
+        <% if current_user.role.in?(['admin', 'financeiro']) %>
+          <%= link_to approve_estimate_path(@estimate), data: { turbo_method: :post, turbo_confirm: 'Aprovar orçamento?' }, class: 'btn btn-success' do %>
+            <i class="bi bi-check-circle"></i> Aprovar
+          <% end %>
+          <%= link_to reject_estimate_path(@estimate), data: { turbo_method: :post, turbo_confirm: 'Recusar orçamento?' }, class: 'btn btn-danger' do %>
+            <i class="bi bi-x-circle"></i> Recusar
+          <% end %>
+        <% end %>
+      <% elsif @estimate.status == 'aprovado' %>
+        <%= link_to convert_to_job_estimate_path(@estimate), data: { turbo_method: :post, turbo_confirm: 'Criar trabalho a partir deste orçamento?' }, class: 'btn btn-info' do %>
+          <i class="bi bi-arrow-right-circle"></i> Criar Trabalho
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card mb-3">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informações</h5>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-5">Cliente:</dt>
+            <dd class="col-sm-7"><%= link_to @estimate.customer.name, @estimate.customer %></dd>
+
+            <dt class="col-sm-5">Status:</dt>
+            <dd class="col-sm-7">
+              <span class="badge bg-<%= case @estimate.status
+                when 'rascunho' then 'secondary'
+                when 'pendente_aprovacao' then 'warning'
+                when 'aprovado' then 'success'
+                when 'recusado' then 'danger'
+                else 'secondary'
+              end %>">
+                <%= @estimate.status.humanize %>
+              </span>
+            </dd>
+
+            <dt class="col-sm-5">Data Criação:</dt>
+            <dd class="col-sm-7"><%= @estimate.created_at.strftime('%d/%m/%Y %H:%M') %></dd>
+
+            <% if @estimate.valid_until %>
+              <dt class="col-sm-5">Válido até:</dt>
+              <dd class="col-sm-7">
+                <span class="badge bg-<%= @estimate.valid_until < Date.today ? 'danger' : 'info' %>">
+                  <%= @estimate.valid_until.strftime('%d/%m/%Y') %>
+                </span>
+              </dd>
+            <% end %>
+
+            <dt class="col-sm-5">Criado por:</dt>
+            <dd class="col-sm-7"><small class="text-muted"><%= @estimate.created_by_user&.email || 'N/A' %></small></dd>
+
+            <% if @estimate.approved_by.present? %>
+              <dt class="col-sm-5"><%= @estimate.status == 'aprovado' ? 'Aprovado por:' : 'Recusado por:' %></dt>
+              <dd class="col-sm-7"><small class="text-muted"><%= @estimate.approved_by %></small></dd>
+
+              <% if @estimate.approved_at %>
+                <dt class="col-sm-5">Data:</dt>
+                <dd class="col-sm-7"><%= @estimate.approved_at.strftime('%d/%m/%Y %H:%M') %></dd>
+              <% end %>
+            <% end %>
+
+            <dt class="col-sm-5">Valor Total:</dt>
+            <dd class="col-sm-7"><strong class="text-primary"><%= number_to_currency(@estimate.total_value, unit: "AOA") %></strong></dd>
+          </dl>
+
+          <% if @estimate.notes.present? %>
+            <hr>
+            <strong>Notas:</strong>
+            <p class="mb-0"><%= simple_format(@estimate.notes) %></p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-list"></i> Items do Orçamento</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th class="text-center">Quantidade</th>
+                  <th class="text-end">Preço Unitário</th>
+                  <th class="text-end">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @estimate_items.each do |item| %>
+                  <tr>
+                    <td><%= item.product.name %></td>
+                    <td class="text-center"><%= item.quantity %></td>
+                    <td class="text-end"><%= number_to_currency(item.unit_price, unit: "AOA") %></td>
+                    <td class="text-end"><strong><%= number_to_currency(item.subtotal, unit: "AOA") %></strong></td>
+                  </tr>
+                <% end %>
+              </tbody>
+              <tfoot>
+                <tr class="table-light">
+                  <th colspan="3" class="text-end">Total:</th>
+                  <th class="text-end">
+                    <h4 class="text-primary mb-0"><%= number_to_currency(@estimate.total_value, unit: "AOA") %></h4>
+                  </th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

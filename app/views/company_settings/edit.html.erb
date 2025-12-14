@@ -1,0 +1,317 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-gear"></i> Configurações da Empresa</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Dashboard', dashboard_path %></li>
+          <li class="breadcrumb-item active" aria-current="page">Configurações</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Informações da Empresa</h5>
+        </div>
+        <div class="card-body">
+          <%= form_with(model: @company_settings, url: company_settings_path, local: true, class: 'needs-validation', novalidate: true) do |form| %>
+            <% if @company_settings.errors.any? %>
+              <div class="alert alert-danger">
+                <h4 class="alert-heading">
+                  <%= pluralize(@company_settings.errors.count, "erro impediu", "erros impediram") %> que as configurações fossem salvas:
+                </h4>
+                <ul class="mb-0">
+                  <% @company_settings.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <%= form.label :company_name, 'Nome da Empresa *', class: 'form-label' %>
+                <%= form.text_field :company_name, class: 'form-control', required: true, autofocus: true %>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <%= form.label :email, 'Email Principal', class: 'form-label' %>
+                <%= form.email_field :email, class: 'form-control', placeholder: 'empresa@exemplo.com' %>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <%= form.label :phone, 'Telefone Principal', class: 'form-label' %>
+                <%= form.text_field :phone, class: 'form-control', placeholder: '+244 XXX XXX XXX' %>
+              </div>
+            </div>
+
+            <!-- Multiple Emails -->
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <label class="form-label">Emails Adicionais</label>
+                <div id="emails-container">
+                  <% (@company_settings.emails || []).each_with_index do |email, index| %>
+                    <div class="input-group mb-2">
+                      <%= text_field_tag "company_setting[emails][]", email, class: 'form-control', placeholder: 'email@exemplo.com' %>
+                      <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  <% end %>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addEmailField()">
+                  <i class="bi bi-plus-circle"></i> Adicionar Email
+                </button>
+              </div>
+            </div>
+
+            <!-- Multiple Phones -->
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <label class="form-label">Telefones Adicionais</label>
+                <div id="phones-container">
+                  <% (@company_settings.phones || []).each_with_index do |phone, index| %>
+                    <div class="input-group mb-2">
+                      <%= text_field_tag "company_setting[phones][]", phone, class: 'form-control', placeholder: '+244 XXX XXX XXX' %>
+                      <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  <% end %>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addPhoneField()">
+                  <i class="bi bi-plus-circle"></i> Adicionar Telefone
+                </button>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <%= form.label :address, 'Endereço', class: 'form-label' %>
+                <%= form.text_area :address, class: 'form-control', rows: 3, placeholder: 'Endereço completo da empresa...' %>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <%= form.label :iban, 'IBAN Principal', class: 'form-label' %>
+                <%= form.text_field :iban, class: 'form-control', placeholder: 'AO06 0000 0000 0000 0000 0000 0' %>
+                <div class="form-text">Conta bancária principal para faturas</div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <%= form.label :company_tagline, 'Slogan da Empresa', class: 'form-label' %>
+                <%= form.text_field :company_tagline, class: 'form-control', placeholder: '3K - Soluções Gráficas, uma empresa do grupo ITTECH' %>
+              </div>
+            </div>
+
+            <!-- Multiple IBANs -->
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <label class="form-label">IBANs Adicionais</label>
+                <div id="ibans-container">
+                  <% (@company_settings.ibans || []).each_with_index do |iban, index| %>
+                    <div class="input-group mb-2">
+                      <%= text_field_tag "company_setting[ibans][]", iban, class: 'form-control', placeholder: 'AO06 0000 0000 0000 0000 0000 0' %>
+                      <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  <% end %>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addIbanField()">
+                  <i class="bi bi-plus-circle"></i> Adicionar IBAN
+                </button>
+              </div>
+            </div>
+
+            <!-- Bank Accounts Section -->
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <hr class="my-4">
+                <h5><i class="bi bi-bank"></i> Contas Bancárias</h5>
+                <div id="bank-accounts-container">
+                  <% (@company_settings.bank_accounts || []).each_with_index do |account, index| %>
+                    <div class="card mb-3 bank-account-item">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                          <h6 class="mb-0">Conta <%= index + 1 %></h6>
+                          <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.bank-account-item').remove()">
+                            <i class="bi bi-trash"></i> Remover
+                          </button>
+                        </div>
+                        <div class="row">
+                          <div class="col-md-6 mb-2">
+                            <label class="form-label">Nome do Banco</label>
+                            <%= text_field_tag "company_setting[bank_accounts][][bank_name]", account['bank_name'], class: 'form-control', placeholder: 'Banco BFA' %>
+                          </div>
+                          <div class="col-md-6 mb-2">
+                            <label class="form-label">Número da Conta</label>
+                            <%= text_field_tag "company_setting[bank_accounts][][account_number]", account['account_number'], class: 'form-control', placeholder: '0000000000' %>
+                          </div>
+                          <div class="col-md-6 mb-2">
+                            <label class="form-label">IBAN</label>
+                            <%= text_field_tag "company_setting[bank_accounts][][iban]", account['iban'], class: 'form-control', placeholder: 'AO06 0000 0000 0000 0000 0000 0' %>
+                          </div>
+                          <div class="col-md-6 mb-2">
+                            <label class="form-label">SWIFT/BIC</label>
+                            <%= text_field_tag "company_setting[bank_accounts][][swift]", account['swift'], class: 'form-control', placeholder: 'BFAOAOAO' %>
+                          </div>
+                          <div class="col-md-12 mb-2">
+                            <label class="form-label">Notas</label>
+                            <%= text_area_tag "company_setting[bank_accounts][][notes]", account['notes'], class: 'form-control', rows: 2, placeholder: 'Notas adicionais sobre esta conta...' %>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+                <button type="button" class="btn btn-outline-success" onclick="addBankAccount()">
+                  <i class="bi bi-plus-circle"></i> Adicionar Conta Bancária
+                </button>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <%= form.label :logo, 'Logotipo da Empresa', class: 'form-label' %>
+                <%= form.file_field :logo, class: 'form-control', accept: 'image/*', id: 'logo-upload', onchange: 'displayFileName(this)' %>
+                <div class="form-text">Formatos aceitos: PNG, JPG, SVG</div>
+                <div id="file-name-display" class="mt-2 text-primary" style="display: none;"></div>
+
+                <% if @company_settings.logo.attached? %>
+                  <div class="mt-3">
+                    <p class="text-muted mb-2">Logo atual:</p>
+                    <%= image_tag @company_settings.logo, style: 'max-width: 200px; max-height: 100px;', class: 'img-thumbnail' %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <%= link_to 'Cancelar', dashboard_path, class: 'btn btn-secondary' %>
+              <%= form.submit 'Salvar Configurações', class: 'btn btn-primary' %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0"><i class="bi bi-info-circle"></i> Ajuda</h5>
+        </div>
+        <div class="card-body">
+          <p><strong>Nome da Empresa:</strong> Nome que aparecerá nas faturas e documentos.</p>
+          <p><strong>Email e Telefone:</strong> Informações de contacto para faturas.</p>
+          <p><strong>IBAN:</strong> Conta bancária que aparecerá nas faturas para pagamento.</p>
+          <p><strong>Slogan:</strong> Texto que aparecerá no cabeçalho das faturas.</p>
+          <p><strong>Logotipo:</strong> Imagem que aparecerá nas faturas e no sistema de login.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Display selected logo filename
+  function displayFileName(input) {
+    const display = document.getElementById('file-name-display');
+    if (input.files && input.files[0]) {
+      display.textContent = '📎 Arquivo selecionado: ' + input.files[0].name;
+      display.style.display = 'block';
+    } else {
+      display.style.display = 'none';
+    }
+  }
+
+  // Add email field
+  function addEmailField() {
+    const container = document.getElementById('emails-container');
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2';
+    div.innerHTML = `
+      <input type="text" name="company_setting[emails][]" class="form-control" placeholder="email@exemplo.com">
+      <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+        <i class="bi bi-trash"></i>
+      </button>
+    `;
+    container.appendChild(div);
+  }
+
+  // Add phone field
+  function addPhoneField() {
+    const container = document.getElementById('phones-container');
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2';
+    div.innerHTML = `
+      <input type="text" name="company_setting[phones][]" class="form-control" placeholder="+244 XXX XXX XXX">
+      <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+        <i class="bi bi-trash"></i>
+      </button>
+    `;
+    container.appendChild(div);
+  }
+
+  // Add IBAN field
+  function addIbanField() {
+    const container = document.getElementById('ibans-container');
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2';
+    div.innerHTML = `
+      <input type="text" name="company_setting[ibans][]" class="form-control" placeholder="AO06 0000 0000 0000 0000 0000 0">
+      <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+        <i class="bi bi-trash"></i>
+      </button>
+    `;
+    container.appendChild(div);
+  }
+
+  // Add bank account
+  function addBankAccount() {
+    const container = document.getElementById('bank-accounts-container');
+    const accountCount = container.querySelectorAll('.bank-account-item').length + 1;
+    const div = document.createElement('div');
+    div.className = 'card mb-3 bank-account-item';
+    div.innerHTML = `
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0">Conta ${accountCount}</h6>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.bank-account-item').remove()">
+            <i class="bi bi-trash"></i> Remover
+          </button>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-2">
+            <label class="form-label">Nome do Banco</label>
+            <input type="text" name="company_setting[bank_accounts][][bank_name]" class="form-control" placeholder="Banco BFA">
+          </div>
+          <div class="col-md-6 mb-2">
+            <label class="form-label">Número da Conta</label>
+            <input type="text" name="company_setting[bank_accounts][][account_number]" class="form-control" placeholder="0000000000">
+          </div>
+          <div class="col-md-6 mb-2">
+            <label class="form-label">IBAN</label>
+            <input type="text" name="company_setting[bank_accounts][][iban]" class="form-control" placeholder="AO06 0000 0000 0000 0000 0000 0">
+          </div>
+          <div class="col-md-6 mb-2">
+            <label class="form-label">SWIFT/BIC</label>
+            <input type="text" name="company_setting[bank_accounts][][swift]" class="form-control" placeholder="BFAOAOAO">
+          </div>
+          <div class="col-md-12 mb-2">
+            <label class="form-label">Notas</label>
+            <textarea name="company_setting[bank_accounts][][notes]" class="form-control" rows="2" placeholder="Notas adicionais sobre esta conta..."></textarea>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  }
+</script>

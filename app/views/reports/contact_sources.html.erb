@@ -1,0 +1,268 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-telephone"></i> Relatório de Eficácia dos Meios de Contacto</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Relatórios', reports_path %></li>
+          <li class="breadcrumb-item active">Meios de Contacto</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Filtro de Mês/Ano -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: contact_sources_reports_path, method: :get, class: 'row g-3' do |f| %>
+        <div class="col-md-4">
+          <label class="form-label">Mês</label>
+          <%= select_tag :month, options_for_select(opcoes_meses, @month), class: 'form-select' %>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Ano</label>
+          <%= select_tag :year, options_for_select((Date.today.year-5..Date.today.year+1).to_a.reverse, @year), class: 'form-select' %>
+        </div>
+        <div class="col-md-4">
+          <%= submit_tag 'Filtrar', class: 'btn btn-primary', style: 'margin-top: 32px;' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Estatísticas Gerais -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body text-center">
+          <h6>Total de Leads</h6>
+          <h2><%= @total_leads %></h2>
+          <small><%= @total_converted %> convertidos</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body text-center">
+          <h6>Total de Oportunidades</h6>
+          <h2><%= @total_opportunities %></h2>
+          <small><%= @total_won %> ganhas</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-warning text-white">
+        <div class="card-body text-center">
+          <h6>Valor Total</h6>
+          <h2><%= number_to_currency(@total_value, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+          <small>oportunidades</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body text-center">
+          <h6>Valor Ganho</h6>
+          <h2><%= number_to_currency(@total_won_value, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+          <small>vendas fechadas</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela de Eficácia por Fonte -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Eficácia por Meio de Contacto - <%= nome_mes(@month) %> <%= @year %></h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Meio de Contacto</th>
+              <th class="text-center">Leads</th>
+              <th class="text-center">Leads Convertidos</th>
+              <th class="text-center">Taxa Conversão</th>
+              <th class="text-center">Oportunidades</th>
+              <th class="text-center">Oportunidades Ganhas</th>
+              <th class="text-center">Taxa de Sucesso</th>
+              <th class="text-end">Valor Total</th>
+              <th class="text-end">Valor Ganho</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%
+              sources = {
+                'whatsapp' => { name: 'WhatsApp', icon: 'bi-whatsapp', color: 'success' },
+                'telefone' => { name: 'Telefone', icon: 'bi-telephone', color: 'primary' },
+                'instagram' => { name: 'Instagram', icon: 'bi-instagram', color: 'danger' },
+                'facebook' => { name: 'Facebook', icon: 'bi-facebook', color: 'info' },
+                'twitter' => { name: 'X (Twitter)', icon: 'bi-twitter', color: 'dark' },
+                'outro' => { name: 'Outro', icon: 'bi-question-circle', color: 'secondary' }
+              }
+
+              sources.each do |source_key, source_data|
+                leads_count = @leads_by_source[source_key] || 0
+                leads_converted = @leads_converted_by_source[source_key] || 0
+                opps_count = @opportunities_by_source[source_key] || 0
+                opps_won = @opportunities_won_by_source[source_key] || 0
+                opps_value = @opportunities_value_by_source[source_key] || 0
+                opps_won_value = @opportunities_won_value_by_source[source_key] || 0
+
+                next if leads_count == 0 && opps_count == 0
+
+                lead_conversion_rate = leads_count > 0 ? (leads_converted.to_f / leads_count * 100).round(1) : 0
+                opp_success_rate = opps_count > 0 ? (opps_won.to_f / opps_count * 100).round(1) : 0
+            %>
+              <tr>
+                <td>
+                  <i class="bi <%= source_data[:icon] %> text-<%= source_data[:color] %>"></i>
+                  <strong><%= source_data[:name] %></strong>
+                </td>
+                <td class="text-center"><%= leads_count %></td>
+                <td class="text-center">
+                  <% if leads_converted > 0 %>
+                    <span class="badge bg-success"><%= leads_converted %></span>
+                  <% else %>
+                    <span class="text-muted">0</span>
+                  <% end %>
+                </td>
+                <td class="text-center">
+                  <% if lead_conversion_rate > 0 %>
+                    <span class="badge <%= lead_conversion_rate >= 50 ? 'bg-success' : 'bg-warning' %>">
+                      <%= lead_conversion_rate %>%
+                    </span>
+                  <% else %>
+                    <span class="text-muted">0%</span>
+                  <% end %>
+                </td>
+                <td class="text-center"><%= opps_count %></td>
+                <td class="text-center">
+                  <% if opps_won > 0 %>
+                    <span class="badge bg-success"><%= opps_won %></span>
+                  <% else %>
+                    <span class="text-muted">0</span>
+                  <% end %>
+                </td>
+                <td class="text-center">
+                  <% if opp_success_rate > 0 %>
+                    <span class="badge <%= opp_success_rate >= 50 ? 'bg-success' : 'bg-warning' %>">
+                      <%= opp_success_rate %>%
+                    </span>
+                  <% else %>
+                    <span class="text-muted">0%</span>
+                  <% end %>
+                </td>
+                <td class="text-end">
+                  <%= number_to_currency(opps_value, unit: 'AOA', separator: ',', delimiter: '.') %>
+                </td>
+                <td class="text-end">
+                  <strong class="text-success">
+                    <%= number_to_currency(opps_won_value, unit: 'AOA', separator: ',', delimiter: '.') %>
+                  </strong>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+          <tfoot class="table-light">
+            <tr>
+              <th>TOTAL</th>
+              <th class="text-center"><%= @total_leads %></th>
+              <th class="text-center"><%= @total_converted %></th>
+              <th class="text-center">
+                <%= @total_leads > 0 ? (@total_converted.to_f / @total_leads * 100).round(1) : 0 %>%
+              </th>
+              <th class="text-center"><%= @total_opportunities %></th>
+              <th class="text-center"><%= @total_won %></th>
+              <th class="text-center">
+                <%= @total_opportunities > 0 ? (@total_won.to_f / @total_opportunities * 100).round(1) : 0 %>%
+              </th>
+              <th class="text-end">
+                <strong><%= number_to_currency(@total_value, unit: 'AOA', separator: ',', delimiter: '.') %></strong>
+              </th>
+              <th class="text-end">
+                <strong class="text-success">
+                  <%= number_to_currency(@total_won_value, unit: 'AOA', separator: ',', delimiter: '.') %>
+                </strong>
+              </th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <% if @total_leads == 0 && @total_opportunities == 0 %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1"></i>
+          <p class="mt-2">Nenhum dado disponível para este período</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Análise -->
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bi bi-trophy"></i> Melhor Fonte para Leads</h6>
+        </div>
+        <div class="card-body">
+          <%
+            best_lead_source = @leads_by_source.max_by { |k, v| v }
+            if best_lead_source
+              source_key = best_lead_source[0]
+              source_data = sources[source_key]
+              count = best_lead_source[1]
+              converted = @leads_converted_by_source[source_key] || 0
+              rate = count > 0 ? (converted.to_f / count * 100).round(1) : 0
+          %>
+            <div class="d-flex align-items-center">
+              <i class="bi <%= source_data[:icon] %> fs-1 text-<%= source_data[:color] %> me-3"></i>
+              <div>
+                <h5><%= source_data[:name] %></h5>
+                <p class="mb-0">
+                  <strong><%= count %></strong> leads
+                  (<strong><%= converted %></strong> convertidos - <strong><%= rate %>%</strong>)
+                </p>
+              </div>
+            </div>
+          <% else %>
+            <p class="text-muted mb-0">Sem dados disponíveis</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bi bi-trophy"></i> Melhor Fonte para Vendas</h6>
+        </div>
+        <div class="card-body">
+          <%
+            best_opp_source = @opportunities_won_value_by_source.max_by { |k, v| v }
+            if best_opp_source && best_opp_source[1] > 0
+              source_key = best_opp_source[0]
+              source_data = sources[source_key]
+              value = best_opp_source[1]
+              count = @opportunities_won_by_source[source_key] || 0
+          %>
+            <div class="d-flex align-items-center">
+              <i class="bi <%= source_data[:icon] %> fs-1 text-<%= source_data[:color] %> me-3"></i>
+              <div>
+                <h5><%= source_data[:name] %></h5>
+                <p class="mb-0">
+                  <strong><%= count %></strong> vendas fechadas -
+                  <strong class="text-success"><%= number_to_currency(value, unit: 'AOA', separator: ',', delimiter: '.') %></strong>
+                </p>
+              </div>
+            </div>
+          <% else %>
+            <p class="text-muted mb-0">Sem dados disponíveis</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

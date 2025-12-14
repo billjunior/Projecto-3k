@@ -1,0 +1,126 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-box-seam"></i> Inventário</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Cyber Café', lan_machines_path %></li>
+          <li class="breadcrumb-item active" aria-current="page">Inventário</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <%= link_to reports_inventory_items_path, class: 'btn btn-info me-2' do %>
+        <i class="bi bi-graph-up"></i> Relatórios
+      <% end %>
+      <%= link_to new_inventory_item_path, class: 'btn btn-primary' do %>
+        <i class="bi bi-plus-circle"></i> Adicionar Produto
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Filter Buttons -->
+  <div class="row mb-3">
+    <div class="col">
+      <div class="btn-group" role="group">
+        <%= link_to inventory_items_path, class: "btn btn-sm #{params[:filter].blank? ? 'btn-primary' : 'btn-outline-primary'}" do %>
+          <i class="bi bi-list"></i> Todos
+        <% end %>
+        <%= link_to inventory_items_path(filter: 'low_stock'), class: "btn btn-sm #{params[:filter] == 'low_stock' ? 'btn-warning' : 'btn-outline-warning'}" do %>
+          <i class="bi bi-exclamation-triangle"></i> Stock Baixo
+        <% end %>
+        <%= link_to inventory_items_path(filter: 'out_of_stock'), class: "btn btn-sm #{params[:filter] == 'out_of_stock' ? 'btn-danger' : 'btn-outline-danger'}" do %>
+          <i class="bi bi-x-circle"></i> Sem Stock
+        <% end %>
+        <%= link_to inventory_items_path(filter: 'in_stock'), class: "btn btn-sm #{params[:filter] == 'in_stock' ? 'btn-success' : 'btn-outline-success'}" do %>
+          <i class="bi bi-check-circle"></i> Com Stock
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory Table -->
+  <div class="card">
+    <div class="card-body p-0">
+      <% if @inventory_items.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Fornecedor</th>
+                <th>Produto</th>
+                <th class="text-end">Qtd. Bruta</th>
+                <th class="text-end">Qtd. Líquida</th>
+                <th class="text-end">Stock Mínimo</th>
+                <th class="text-end">Preço Compra</th>
+                <th class="text-center">Status</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @inventory_items.each do |item| %>
+                <tr class="<%= 'table-danger' if item.stock_status == 'out_of_stock' %>
+                           <%= 'table-warning' if item.stock_status == 'low_stock' %>">
+                  <td>
+                    <i class="bi bi-phone"></i> <%= item.supplier_phone %>
+                  </td>
+                  <td>
+                    <strong><%= item.product_name %></strong>
+                  </td>
+                  <td class="text-end">
+                    <%= number_with_precision(item.gross_quantity, precision: 2, delimiter: ".", separator: ",") %>
+                  </td>
+                  <td class="text-end">
+                    <strong><%= number_with_precision(item.net_quantity, precision: 2, delimiter: ".", separator: ",") %></strong>
+                  </td>
+                  <td class="text-end">
+                    <%= item.minimum_stock %>
+                  </td>
+                  <td class="text-end">
+                    <%= number_to_currency(item.purchase_price, unit: "AOA", separator: ",", delimiter: ".") %>
+                  </td>
+                  <td class="text-center">
+                    <% case item.stock_status %>
+                    <% when 'out_of_stock' %>
+                      <span class="badge bg-danger">Sem Stock</span>
+                    <% when 'low_stock' %>
+                      <span class="badge bg-warning text-dark">Stock Baixo</span>
+                    <% else %>
+                      <span class="badge bg-success">Normal</span>
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <%= link_to inventory_item_path(item), class: 'btn btn-sm btn-outline-primary me-1' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                    <%= link_to edit_inventory_item_path(item), class: 'btn btn-sm btn-outline-secondary me-1' do %>
+                      <i class="bi bi-pencil"></i>
+                    <% end %>
+                    <%= link_to inventory_item_path(item),
+                        data: { turbo_method: :delete, turbo_confirm: 'Tem certeza que deseja remover este produto?' },
+                        class: 'btn btn-sm btn-outline-danger' do %>
+                      <i class="bi bi-trash"></i>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-center mt-4 mb-3">
+          <%= paginate @inventory_items %>
+        </div>
+      <% else %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-box-seam fs-1"></i>
+          <p class="mt-2">Nenhum produto no inventário</p>
+          <%= link_to new_inventory_item_path, class: 'btn btn-primary' do %>
+            <i class="bi bi-plus-circle"></i> Adicionar Primeiro Produto
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

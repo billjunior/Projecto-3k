@@ -1,0 +1,113 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-building"></i> Gestão de Tenants</h1>
+      <p class="text-muted">Painel de administração de empresas do sistema</p>
+    </div>
+    <div class="col-auto">
+      <%= link_to new_admin_tenant_path, class: 'btn btn-primary' do %>
+        <i class="bi bi-plus-circle"></i> Novo Tenant
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Empresa</th>
+              <th>Subdomínio</th>
+              <th>Estado</th>
+              <th>Subscrição</th>
+              <th class="text-center">Utilizadores</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @tenants.any? %>
+              <% @tenants.each do |tenant| %>
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <% if tenant.logo.attached? %>
+                        <%= image_tag tenant.logo, style: 'max-height: 30px; max-width: 60px;', class: 'me-2' %>
+                      <% else %>
+                        <i class="bi bi-building fs-4 me-2 text-muted"></i>
+                      <% end %>
+                      <%= link_to tenant.name, admin_tenant_path(tenant), class: 'text-decoration-none fw-bold' %>
+                    </div>
+                  </td>
+                  <td>
+                    <code><%= tenant.subdomain %></code>
+                  </td>
+                  <td>
+                    <%
+                      badge_class = case tenant.status
+                      when 'active' then 'bg-success'
+                      when 'expired' then 'bg-danger'
+                      when 'suspended' then 'bg-warning'
+                      else 'bg-secondary'
+                      end
+
+                      status_text = case tenant.status
+                      when 'active' then 'Ativo'
+                      when 'expired' then 'Expirado'
+                      when 'suspended' then 'Suspenso'
+                      else tenant.status
+                      end
+                    %>
+                    <span class="badge <%= badge_class %>">
+                      <%= status_text %>
+                    </span>
+                    <% if tenant.expiring_soon? && tenant.status == 'active' %>
+                      <br><small class="text-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Expira em <%= tenant.days_until_expiration %> dias
+                      </small>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% if tenant.subscription_start.present? %>
+                      <small class="d-block">
+                        <i class="bi bi-calendar-check"></i> Início: <%= tenant.subscription_start.strftime('%d/%m/%Y') %>
+                      </small>
+                    <% end %>
+                    <% if tenant.subscription_end.present? %>
+                      <small class="d-block <%= tenant.expired? ? 'text-danger' : '' %>">
+                        <i class="bi bi-calendar-x"></i> Fim: <%= tenant.subscription_end.strftime('%d/%m/%Y') %>
+                      </small>
+                    <% else %>
+                      <small class="text-muted">Sem data de expiração</small>
+                    <% end %>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-info"><%= tenant.users.count %></span>
+                  </td>
+                  <td class="text-end">
+                    <%= link_to admin_tenant_path(tenant), class: 'btn btn-sm btn-outline-primary', title: 'Ver detalhes' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                    <%= link_to edit_admin_tenant_path(tenant), class: 'btn btn-sm btn-outline-secondary', title: 'Editar' do %>
+                      <i class="bi bi-pencil"></i>
+                    <% end %>
+                    <%= link_to admin_tenant_path(tenant), data: { turbo_method: :delete, turbo_confirm: 'Tem a certeza que deseja remover este tenant? Todos os dados serão perdidos!' }, class: 'btn btn-sm btn-outline-danger', title: 'Eliminar' do %>
+                      <i class="bi bi-trash"></i>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="6" class="text-center text-muted py-5">
+                  <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                  Nenhum tenant encontrado
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

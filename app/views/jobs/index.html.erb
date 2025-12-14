@@ -1,0 +1,121 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-printer"></i> Trabalhos de Gráfica</h1>
+    </div>
+    <div class="col-auto">
+      <%= link_to new_job_path, class: 'btn btn-primary' do %>
+        <i class="bi bi-plus-circle"></i> Novo Trabalho
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Status Filter Pills -->
+  <div class="mb-4">
+    <ul class="nav nav-pills">
+      <li class="nav-item">
+        <%= link_to 'Todos', jobs_path(status: 'all'), class: "nav-link #{'active' if @status_filter == 'all'}" %>
+        <span class="badge bg-secondary"><%= @status_counts[:all] %></span>
+      </li>
+      <li class="nav-item">
+        <%= link_to 'Novo', jobs_path(status: 'novo'), class: "nav-link #{'active' if @status_filter == 'novo'}" %>
+        <span class="badge bg-primary"><%= @status_counts[:novo] %></span>
+      </li>
+      <li class="nav-item">
+        <%= link_to 'Design', jobs_path(status: 'em_design'), class: "nav-link #{'active' if @status_filter == 'em_design'}" %>
+        <span class="badge bg-info"><%= @status_counts[:em_design] %></span>
+      </li>
+      <li class="nav-item">
+        <%= link_to 'Impressão', jobs_path(status: 'em_impressao'), class: "nav-link #{'active' if @status_filter == 'em_impressao'}" %>
+        <span class="badge bg-warning"><%= @status_counts[:em_impressao] %></span>
+      </li>
+      <li class="nav-item">
+        <%= link_to 'Acabamento', jobs_path(status: 'em_acabamento'), class: "nav-link #{'active' if @status_filter == 'em_acabamento'}" %>
+        <span class="badge bg-warning"><%= @status_counts[:em_acabamento] %></span>
+      </li>
+      <li class="nav-item">
+        <%= link_to 'Pronto', jobs_path(status: 'pronto'), class: "nav-link #{'active' if @status_filter == 'pronto'}" %>
+        <span class="badge bg-success"><%= @status_counts[:pronto] %></span>
+      </li>
+      <li class="nav-item">
+        <%= link_to 'Entregue', jobs_path(status: 'entregue'), class: "nav-link #{'active' if @status_filter == 'entregue'}" %>
+        <span class="badge bg-secondary"><%= @status_counts[:entregue] %></span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Jobs Table -->
+  <div class="card">
+    <div class="card-body p-0">
+      <% if @jobs.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Título</th>
+                <th>Cliente</th>
+                <th>Prioridade</th>
+                <th>Status</th>
+                <th>Entrega</th>
+                <th class="text-end">Valor</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @jobs.each do |job| %>
+                <tr class="<%= 'table-danger' if job.overdue? %>">
+                  <td>
+                    <%= link_to job.job_number, job, class: 'text-decoration-none fw-bold' %>
+                  </td>
+                  <td><%= job.title %></td>
+                  <td><%= job.customer.name %></td>
+                  <td>
+                    <span class="badge bg-<%= job.priority == 'urgente' ? 'danger' : job.priority == 'alta' ? 'warning' : 'secondary' %>">
+                      <%= job.priority.capitalize %>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge bg-<%= job.status_color %>">
+                      <%= job.status.humanize %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if job.delivery_date %>
+                      <span class="badge bg-<%= job.overdue? ? 'danger' : 'info' %>">
+                        <%= job.delivery_date.strftime('%d/%m/%Y') %>
+                        <% if job.overdue? %>
+                          <i class="bi bi-exclamation-triangle"></i>
+                        <% end %>
+                      </span>
+                    <% else %>
+                      <span class="text-muted">-</span>
+                    <% end %>
+                  </td>
+                  <td class="text-end"><strong><%= number_to_currency(job.total_value, unit: "AOA") %></strong></td>
+                  <td class="text-end">
+                    <%= link_to job, class: 'btn btn-sm btn-outline-primary' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                    <%= link_to edit_job_path(job), class: 'btn btn-sm btn-outline-secondary' do %>
+                      <i class="bi bi-pencil"></i>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card-footer">
+          <%= paginate @jobs %>
+        </div>
+      <% else %>
+        <p class="text-muted text-center py-5">
+          <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+          Nenhum trabalho encontrado
+        </p>
+      <% end %>
+    </div>
+  </div>
+</div>

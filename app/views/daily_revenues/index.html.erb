@@ -1,0 +1,197 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-cash-coin"></i> Controlo Diário de Receitas</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Cyber Café', lan_machines_path %></li>
+          <li class="breadcrumb-item active">Receitas Diárias</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <%= link_to new_daily_revenue_path, class: 'btn btn-primary' do %>
+        <i class="bi bi-plus-circle"></i> Nova Receita
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Filtro de Mês/Ano -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: daily_revenues_path, method: :get, class: 'row g-3 align-items-end' do |f| %>
+        <div class="col-md-4">
+          <label class="form-label">Mês</label>
+          <%= select_tag :month, options_for_select(opcoes_meses, @month), class: 'form-select' %>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Ano</label>
+          <%= select_tag :year, options_for_select((2025..2040).to_a.reverse, @year), class: 'form-select' %>
+        </div>
+        <div class="col-md-4">
+          <%= submit_tag 'Filtrar', class: 'btn btn-primary w-100' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Estatísticas Mensais -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body text-center">
+          <h6>Total Entradas</h6>
+          <h3><%= number_to_currency(@total_entries, unit: 'AOA', separator: ',', delimiter: '.') %></h3>
+          <small><%= @entries_count %> registos</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-danger text-white">
+        <div class="card-body text-center">
+          <h6>Total Saídas</h6>
+          <h3><%= number_to_currency(@total_exits, unit: 'AOA', separator: ',', delimiter: '.') %></h3>
+          <small><%= @exits_count %> registos</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body text-center">
+          <h6>Saldo</h6>
+          <h3><%= number_to_currency(@total_balance, unit: 'AOA', separator: ',', delimiter: '.') %></h3>
+          <small>Entradas - Saídas</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body text-center">
+          <h6>Período</h6>
+          <h3><%= nome_mes(@month) %></h3>
+          <small><%= @year %></small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela de Receitas -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">
+        <i class="bi bi-table"></i> FOLHA DE CONTROLE DE RECEITAS DE <%= nome_mes(@month).upcase %> <%= @year %>
+      </h5>
+    </div>
+    <div class="card-body">
+      <% if @daily_revenues.any? %>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover table-sm">
+            <thead class="table-dark">
+              <tr>
+                <th style="width: 100px;">Data</th>
+                <th>Denominação</th>
+                <th style="width: 80px;" class="text-center">Quant.</th>
+                <th style="width: 120px;" class="text-end">P. Unit</th>
+                <th style="width: 130px;" class="text-end">Entrada</th>
+                <th style="width: 130px;" class="text-end">Saída</th>
+                <th style="width: 130px;" class="text-end">Total</th>
+                <th style="width: 120px;" class="text-center">Pagamento</th>
+                <th style="width: 120px;" class="text-center">Acções</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @daily_revenues.each do |revenue| %>
+                <tr>
+                  <td><%= revenue.date.strftime('%d/%m/%Y') %></td>
+                  <td>
+                    <strong><%= revenue.description %></strong>
+                    <% if revenue.notes.present? %>
+                      <br><small class="text-muted"><%= truncate(revenue.notes, length: 50) %></small>
+                    <% end %>
+                  </td>
+                  <td class="text-center">
+                    <%= revenue.quantity || '-' %>
+                  </td>
+                  <td class="text-end">
+                    <% if revenue.unit_price.present? %>
+                      <%= number_to_currency(revenue.unit_price, unit: 'AOA', separator: ',', delimiter: '.') %>
+                    <% else %>
+                      -
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <% if revenue.entry && revenue.entry > 0 %>
+                      <span class="text-success fw-bold">
+                        <%= number_to_currency(revenue.entry, unit: 'AOA', separator: ',', delimiter: '.') %>
+                      </span>
+                    <% else %>
+                      -
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <% if revenue.exit && revenue.exit > 0 %>
+                      <span class="text-danger fw-bold">
+                        <%= number_to_currency(revenue.exit, unit: 'AOA', separator: ',', delimiter: '.') %>
+                      </span>
+                    <% else %>
+                      -
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <strong>
+                      <%= number_to_currency(revenue.total || 0, unit: 'AOA', separator: ',', delimiter: '.') %>
+                    </strong>
+                  </td>
+                  <td class="text-center">
+                    <% if revenue.manual? %>
+                      <span class="badge bg-primary">Manual</span>
+                    <% else %>
+                      <span class="badge bg-success">Transferência</span>
+                    <% end %>
+                  </td>
+                  <td class="text-center">
+                    <div class="btn-group btn-group-sm">
+                      <%= link_to edit_daily_revenue_path(revenue), class: 'btn btn-outline-primary', title: 'Editar' do %>
+                        <i class="bi bi-pencil"></i>
+                      <% end %>
+                      <%= button_to daily_revenue_path(revenue), method: :delete, class: 'btn btn-outline-danger',
+                          title: 'Eliminar', data: { confirm: 'Tem certeza?' } do %>
+                        <i class="bi bi-trash"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+            <tfoot class="table-light">
+              <tr>
+                <th colspan="4" class="text-end">TOTAIS DO MÊS:</th>
+                <th class="text-end text-success">
+                  <%= number_to_currency(@total_entries, unit: 'AOA', separator: ',', delimiter: '.') %>
+                </th>
+                <th class="text-end text-danger">
+                  <%= number_to_currency(@total_exits, unit: 'AOA', separator: ',', delimiter: '.') %>
+                </th>
+                <th class="text-end">
+                  <strong><%= number_to_currency(@total_balance, unit: 'AOA', separator: ',', delimiter: '.') %></strong>
+                </th>
+                <th colspan="2"></th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-center mt-4">
+          <%= paginate @daily_revenues %>
+        </div>
+      <% else %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1"></i>
+          <p class="mt-2">Sem receitas registadas para <%= nome_mes(@month) %> <%= @year %></p>
+          <%= link_to 'Registar Nova Receita', new_daily_revenue_path, class: 'btn btn-primary' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,224 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-graph-up"></i> Relatórios de Inventário</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Cyber Café', lan_machines_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Inventário', inventory_items_path %></li>
+          <li class="breadcrumb-item active" aria-current="page">Relatórios</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <%= link_to inventory_items_path, class: 'btn btn-secondary' do %>
+        <i class="bi bi-arrow-left"></i> Voltar
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Month Filter -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: reports_inventory_items_path, method: :get, local: true, class: 'row g-3' do |form| %>
+        <div class="col-md-4">
+          <%= form.label :month, 'Mês', class: 'form-label' %>
+          <%= form.select :month,
+              options_for_select(opcoes_meses, @selected_month),
+              { include_blank: 'Todos os meses' },
+              class: 'form-select' %>
+        </div>
+        <div class="col-md-4">
+          <%= form.label :year, 'Ano', class: 'form-label' %>
+          <%= form.select :year,
+              options_for_select((2025..2040).to_a.reverse, @selected_year),
+              { include_blank: 'Todos os anos' },
+              class: 'form-select' %>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <%= form.submit 'Filtrar', class: 'btn btn-primary me-2' %>
+          <%= link_to 'Limpar', reports_inventory_items_path, class: 'btn btn-outline-secondary' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Most Purchased Products (Entries) -->
+  <div class="card mb-4">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">
+        <i class="bi bi-arrow-down-circle"></i> Produtos Mais Comprados (Entradas)
+        <% if @selected_month && @selected_year %>
+          <small>- <%= nome_mes(@selected_month) %> <%= @selected_year %></small>
+        <% end %>
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <% if @most_purchased.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th width="5%" class="text-center">#</th>
+                <th>Produto</th>
+                <th>Fornecedor</th>
+                <th class="text-end">Total de Entradas</th>
+                <th class="text-end">Stock Atual</th>
+                <th class="text-end">Preço Compra</th>
+                <th class="text-end">Valor Total Investido</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @most_purchased.each_with_index do |item, index| %>
+                <tr>
+                  <td class="text-center">
+                    <% if index == 0 %>
+                      <i class="bi bi-trophy-fill text-warning fs-5"></i>
+                    <% elsif index == 1 %>
+                      <i class="bi bi-trophy-fill text-secondary fs-5"></i>
+                    <% elsif index == 2 %>
+                      <i class="bi bi-trophy-fill text-danger fs-5"></i>
+                    <% else %>
+                      <%= index + 1 %>
+                    <% end %>
+                  </td>
+                  <td>
+                    <%= link_to inventory_item_path(item) do %>
+                      <strong><%= item.product_name %></strong>
+                    <% end %>
+                  </td>
+                  <td><i class="bi bi-phone"></i> <%= item.supplier_phone %></td>
+                  <td class="text-end">
+                    <span class="badge bg-success fs-6">
+                      <%= number_with_precision(item.total_entries, precision: 2, delimiter: ".", separator: ",") %>
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <%= number_with_precision(item.net_quantity, precision: 2, delimiter: ".", separator: ",") %>
+                  </td>
+                  <td class="text-end">
+                    <%= number_to_currency(item.purchase_price, unit: "AOA", separator: ",", delimiter: ".") %>
+                  </td>
+                  <td class="text-end">
+                    <strong>
+                      <%= number_to_currency(item.purchase_price * item.total_entries, unit: "AOA", separator: ",", delimiter: ".") %>
+                    </strong>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+            <tfoot class="table-light">
+              <tr>
+                <th colspan="3" class="text-end">TOTAL:</th>
+                <th class="text-end">
+                  <%= number_with_precision(@most_purchased.sum(&:total_entries), precision: 2, delimiter: ".", separator: ",") %>
+                </th>
+                <th colspan="2"></th>
+                <th class="text-end">
+                  <strong>
+                    <%= number_to_currency(
+                      @most_purchased.sum { |i| i.purchase_price * i.total_entries },
+                      unit: "AOA", separator: ",", delimiter: "."
+                    ) %>
+                  </strong>
+                </th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1"></i>
+          <p class="mt-2">Nenhuma entrada registada</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Most Exits Products -->
+  <div class="card">
+    <div class="card-header bg-danger text-white">
+      <h5 class="mb-0">
+        <i class="bi bi-arrow-up-circle"></i> Produtos com Mais Saídas
+        <% if @selected_month && @selected_year %>
+          <small>- <%= nome_mes(@selected_month) %> <%= @selected_year %></small>
+        <% end %>
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <% if @most_exits.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th width="5%" class="text-center">#</th>
+                <th>Produto</th>
+                <th>Fornecedor</th>
+                <th class="text-end">Total de Saídas</th>
+                <th class="text-end">Stock Atual</th>
+                <th class="text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @most_exits.each_with_index do |item, index| %>
+                <tr>
+                  <td class="text-center">
+                    <% if index == 0 %>
+                      <i class="bi bi-trophy-fill text-warning fs-5"></i>
+                    <% elsif index == 1 %>
+                      <i class="bi bi-trophy-fill text-secondary fs-5"></i>
+                    <% elsif index == 2 %>
+                      <i class="bi bi-trophy-fill text-danger fs-5"></i>
+                    <% else %>
+                      <%= index + 1 %>
+                    <% end %>
+                  </td>
+                  <td>
+                    <%= link_to inventory_item_path(item) do %>
+                      <strong><%= item.product_name %></strong>
+                    <% end %>
+                  </td>
+                  <td><i class="bi bi-phone"></i> <%= item.supplier_phone %></td>
+                  <td class="text-end">
+                    <span class="badge bg-danger fs-6">
+                      <%= number_with_precision(item.total_exits, precision: 2, delimiter: ".", separator: ",") %>
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <%= number_with_precision(item.net_quantity, precision: 2, delimiter: ".", separator: ",") %>
+                  </td>
+                  <td class="text-center">
+                    <%= content_tag :span, class: "badge bg-#{item.stock_status_badge_class}" do %>
+                      <% case item.stock_status %>
+                      <% when 'out_of_stock' %>
+                        Sem Stock
+                      <% when 'low_stock' %>
+                        Stock Baixo
+                      <% else %>
+                        Normal
+                      <% end %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+            <tfoot class="table-light">
+              <tr>
+                <th colspan="3" class="text-end">TOTAL:</th>
+                <th class="text-end">
+                  <%= number_with_precision(@most_exits.sum(&:total_exits), precision: 2, delimiter: ".", separator: ",") %>
+                </th>
+                <th colspan="2"></th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1"></i>
+          <p class="mt-2">Nenhuma saída registada</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,197 @@
+<%= form_with(model: job, local: true) do |form| %>
+  <% if job.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(job.errors.count, "erro") %>:</h5>
+      <ul class="mb-0">
+        <% job.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :customer_id, 'Cliente', class: 'form-label' %>
+        <%= form.select :customer_id,
+            options_from_collection_for_select(@customers, :id, :name, job.customer_id),
+            { prompt: 'Selecione um cliente' },
+            class: 'form-select',
+            required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :title, 'Título do Trabalho', class: 'form-label' %>
+        <%= form.text_field :title, class: 'form-control', required: true %>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :description, 'Descrição', class: 'form-label' %>
+    <%= form.text_area :description, rows: 3, class: 'form-control' %>
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= form.label :priority, 'Prioridade', class: 'form-label' %>
+        <%= form.select :priority,
+            [['Baixa', 'baixa'], ['Normal', 'normal'], ['Alta', 'alta'], ['Urgente', 'urgente']],
+            {},
+            class: 'form-select',
+            required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= form.label :status, 'Status', class: 'form-label' %>
+        <%= form.select :status,
+            [
+              ['Novo', 'novo'],
+              ['Em Design', 'em_design'],
+              ['Em Impressão', 'em_impressao'],
+              ['Em Acabamento', 'em_acabamento'],
+              ['Pronto', 'pronto'],
+              ['Entregue', 'entregue'],
+              ['Cancelado', 'cancelado']
+            ],
+            {},
+            class: 'form-select',
+            required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= form.label :delivery_date, 'Data de Entrega', class: 'form-label' %>
+        <%= form.date_field :delivery_date, class: 'form-control' %>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= form.label :advance_paid, 'Sinal Pago (AOA)', class: 'form-label' %>
+        <%= form.number_field :advance_paid, class: 'form-control', step: '0.01', min: '0', value: job.advance_paid || 0 %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Job Items -->
+  <div class="card mb-3">
+    <div class="card-header bg-light">
+      <h5 class="mb-0"><i class="bi bi-list"></i> Items do Trabalho</h5>
+    </div>
+    <div class="card-body">
+      <div id="job-items">
+        <%= form.fields_for :job_items do |item_form| %>
+          <div class="job-item border rounded p-3 mb-3">
+            <%= item_form.hidden_field :_destroy, class: 'item-destroy' %>
+
+            <div class="row">
+              <div class="col-md-5">
+                <div class="mb-2">
+                  <%= item_form.label :product_id, 'Produto', class: 'form-label' %>
+                  <%= item_form.select :product_id,
+                      options_from_collection_for_select(@products, :id, :name, item_form.object.product_id),
+                      { prompt: 'Selecione um produto' },
+                      class: 'form-select',
+                      required: true %>
+                </div>
+              </div>
+
+              <div class="col-md-2">
+                <div class="mb-2">
+                  <%= item_form.label :quantity, 'Quantidade', class: 'form-label' %>
+                  <%= item_form.number_field :quantity, class: 'form-control quantity-input', min: 1, required: true %>
+                </div>
+              </div>
+
+              <div class="col-md-2">
+                <div class="mb-2">
+                  <%= item_form.label :unit_price, 'Preço Unit.', class: 'form-label' %>
+                  <%= item_form.number_field :unit_price, class: 'form-control price-input', step: '0.01', min: '0', required: true %>
+                </div>
+              </div>
+
+              <div class="col-md-2">
+                <div class="mb-2">
+                  <%= item_form.label :subtotal, 'Subtotal', class: 'form-label' %>
+                  <%= item_form.number_field :subtotal, class: 'form-control subtotal-input', step: '0.01', readonly: true %>
+                </div>
+              </div>
+
+              <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-danger mb-2 remove-item">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <button type="button" class="btn btn-outline-primary" id="add-job-item">
+        <i class="bi bi-plus-circle"></i> Adicionar Item
+      </button>
+    </div>
+
+    <div class="card-footer bg-light">
+      <div class="row">
+        <div class="col-md-8 text-end">
+          <h5>Total:</h5>
+        </div>
+        <div class="col-md-4 text-end">
+          <h4 class="text-primary" id="grand-total">AOA 0.00</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= form.submit 'Guardar Trabalho', class: 'btn btn-primary' %>
+    <%= link_to 'Cancelar', jobs_path, class: 'btn btn-secondary' %>
+  </div>
+<% end %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function calculateTotals() {
+    let grandTotal = 0;
+
+    document.querySelectorAll('.job-item').forEach(item => {
+      if (item.querySelector('.item-destroy').value === 'true') return;
+
+      const quantity = parseFloat(item.querySelector('.quantity-input').value) || 0;
+      const price = parseFloat(item.querySelector('.price-input').value) || 0;
+      const subtotal = quantity * price;
+
+      item.querySelector('.subtotal-input').value = subtotal.toFixed(2);
+      grandTotal += subtotal;
+    });
+
+    document.getElementById('grand-total').textContent = grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' AOA';
+  }
+
+  document.addEventListener('input', function(e) {
+    if (e.target.matches('.quantity-input') || e.target.matches('.price-input')) {
+      calculateTotals();
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.remove-item')) {
+      const item = e.target.closest('.job-item');
+      item.querySelector('.item-destroy').value = 'true';
+      item.style.display = 'none';
+      calculateTotals();
+    }
+  });
+
+  calculateTotals();
+});
+</script>

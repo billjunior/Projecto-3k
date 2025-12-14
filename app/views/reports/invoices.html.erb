@@ -1,0 +1,144 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-receipt"></i> Relatório de Faturas</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Relatórios', reports_path %></li>
+          <li class="breadcrumb-item active">Faturas</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Filtro de Período -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: invoices_reports_path, method: :get, class: 'row g-3' do |f| %>
+        <div class="col-md-5">
+          <label class="form-label">Data Início</label>
+          <%= date_field_tag :start_date, @start_date, class: 'form-control' %>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Data Fim</label>
+          <%= date_field_tag :end_date, @end_date, class: 'form-control' %>
+        </div>
+        <div class="col-md-2">
+          <%= submit_tag 'Filtrar', class: 'btn btn-primary', style: 'margin-top: 32px;' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Estatísticas -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body text-center">
+          <h6>Total Faturado</h6>
+          <h2><%= number_to_currency(@total_invoiced, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body text-center">
+          <h6>Total Pago</h6>
+          <h2><%= number_to_currency(@total_paid, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-danger text-white">
+        <div class="card-body text-center">
+          <h6>Pendente</h6>
+          <h2><%= number_to_currency(@pending_amount, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body text-center">
+          <h6>Total de Faturas</h6>
+          <h2><%= @invoices.count %></h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Faturas por Status -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Faturas por Status</h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <% @invoices_by_status.each do |status, count| %>
+              <div class="col-md-3">
+                <h3><%= count %></h3>
+                <p class="text-muted"><%= status.capitalize %></p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela de Faturas -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Faturas do Período</h5>
+    </div>
+    <div class="card-body p-0">
+      <% if @invoices.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th>Vencimento</th>
+                <th class="text-end">Valor</th>
+                <th class="text-end">Pago</th>
+                <th class="text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @invoices.each do |invoice| %>
+                <tr>
+                  <td><%= link_to invoice.id.to_s.rjust(6, '0'), invoice %></td>
+                  <td><%= invoice.customer.name %></td>
+                  <td><%= invoice.invoice_date.strftime('%d/%m/%Y') %></td>
+                  <td><%= invoice.due_date.strftime('%d/%m/%Y') %></td>
+                  <td class="text-end"><%= number_to_currency(invoice.total_value, unit: 'AOA', separator: ',', delimiter: '.') %></td>
+                  <td class="text-end"><%= number_to_currency(invoice.payments.sum(:amount), unit: 'AOA', separator: ',', delimiter: '.') %></td>
+                  <td class="text-center">
+                    <% case invoice.status %>
+                    <% when 'paga' %>
+                      <span class="badge bg-success">Paga</span>
+                    <% when 'pendente' %>
+                      <span class="badge bg-warning">Pendente</span>
+                    <% when 'parcial' %>
+                      <span class="badge bg-info">Parcial</span>
+                    <% else %>
+                      <span class="badge bg-secondary"><%= invoice.status.capitalize %></span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1"></i>
+          <p class="mt-2">Nenhuma fatura encontrada neste período</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

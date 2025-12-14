@@ -1,0 +1,172 @@
+<% company_settings = Tenant.first&.company_setting %>
+<style>
+  .login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+  }
+
+  <% if company_settings&.logo&.attached? %>
+  .login-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    background-image: url('<%= url_for(company_settings.logo) %>');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.05;
+    z-index: 0;
+  }
+  <% end %>
+
+  .login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 50px 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 450px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .login-logo {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .login-logo img {
+    max-width: 180px;
+    max-height: 80px;
+    margin-bottom: 15px;
+  }
+
+  .login-logo h2 {
+    color: #333;
+    font-weight: 700;
+    margin: 0;
+    font-size: 28px;
+  }
+
+  .login-logo p {
+    color: #666;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+
+  .login-form .form-label {
+    color: #444;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .login-form .form-control {
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+  }
+
+  .login-form .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.1);
+  }
+
+  .login-form .form-check {
+    margin: 20px 0;
+  }
+
+  .login-form .form-check-label {
+    color: #666;
+    font-size: 14px;
+  }
+
+  .login-form .btn-login {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .login-form .btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .login-links {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .login-links a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+  }
+
+  .login-links a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+  }
+</style>
+
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="login-logo">
+      <% if company_settings&.logo&.attached? %>
+        <%= image_tag company_settings.logo, alt: company_settings&.company_name || 'CRM 3K' %>
+      <% end %>
+      <h2><%= company_settings&.company_name || 'CRM 3K' %></h2>
+      <% if company_settings&.company_tagline.present? %>
+        <p><%= company_settings.company_tagline %></p>
+      <% end %>
+    </div>
+
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: 'login-form' }) do |f| %>
+      <div class="mb-3">
+        <%= f.label :email, 'Email', class: 'form-label' %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", class: 'form-control', placeholder: 'seu@email.com' %>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :password, 'Senha', class: 'form-label' %>
+        <%= f.password_field :password, autocomplete: "current-password", class: 'form-control', placeholder: '••••••••' %>
+      </div>
+
+      <% if devise_mapping.rememberable? %>
+        <div class="form-check">
+          <%= f.check_box :remember_me, class: 'form-check-input' %>
+          <%= f.label :remember_me, 'Lembrar-me', class: 'form-check-label' %>
+        </div>
+      <% end %>
+
+      <div class="mt-4">
+        <%= f.submit "Entrar", class: 'btn btn-login' %>
+      </div>
+    <% end %>
+
+    <div class="login-links">
+      <%= render "devise/shared/links" %>
+    </div>
+  </div>
+</div>

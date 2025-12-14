@@ -1,0 +1,86 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-person-badge"></i> Leads</h1>
+    </div>
+    <div class="col-auto">
+      <%= link_to new_lead_path, class: 'btn btn-primary' do %>
+        <i class="bi bi-plus-circle"></i> Novo Lead
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Empresa</th>
+              <th>Email/Telefone</th>
+              <th>Classificação</th>
+              <th>Fonte</th>
+              <th>Responsável</th>
+              <th>Estado</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @leads.any? %>
+              <% @leads.each do |lead| %>
+                <tr>
+                  <td><%= link_to lead.name, lead, class: 'text-decoration-none fw-bold' %></td>
+                  <td><%= lead.company %></td>
+                  <td>
+                    <%= lead.email %><br>
+                    <small><%= lead.phone %></small>
+                  </td>
+                  <td>
+                    <%
+                      badge_class = case lead.classification
+                      when 'hot' then 'bg-danger'
+                      when 'warm' then 'bg-warning'
+                      when 'cold' then 'bg-info'
+                      end
+                    %>
+                    <span class="badge <%= badge_class %>">
+                      <%= lead.classification.capitalize %>
+                    </span>
+                  </td>
+                  <td><%= lead.source %></td>
+                  <td><%= lead.assigned_to_user&.name %></td>
+                  <td>
+                    <% if lead.converted? %>
+                      <span class="badge bg-success">Convertido</span>
+                    <% else %>
+                      <span class="badge bg-secondary">Ativo</span>
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <%= link_to lead, class: 'btn btn-sm btn-outline-primary' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                    <%= link_to edit_lead_path(lead), class: 'btn btn-sm btn-outline-secondary' do %>
+                      <i class="bi bi-pencil"></i>
+                    <% end %>
+                    <%= link_to lead, data: { turbo_method: :delete, turbo_confirm: 'Tem a certeza?' }, class: 'btn btn-sm btn-outline-danger' do %>
+                      <i class="bi bi-trash"></i>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="8" class="text-center text-muted py-5">
+                  <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                  Nenhum lead encontrado
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

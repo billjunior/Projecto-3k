@@ -1,0 +1,132 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-mortarboard"></i> Relatório de Cursos de Formação</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Relatórios', reports_path %></li>
+          <li class="breadcrumb-item active">Cursos de Formação</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <%= link_to training_courses_reports_path(month: @month, year: @year, format: :pdf), class: 'btn btn-danger', target: '_blank' do %>
+        <i class="bi bi-file-pdf"></i> Exportar PDF
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Filtro de Mês/Ano -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: training_courses_reports_path, method: :get, class: 'row g-3' do |f| %>
+        <div class="col-md-4">
+          <label class="form-label">Mês</label>
+          <%= select_tag :month, options_for_select(opcoes_meses, @month), class: 'form-select' %>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Ano</label>
+          <%= select_tag :year, options_for_select((2025..2040).to_a.reverse, @year), class: 'form-select' %>
+        </div>
+        <div class="col-md-4">
+          <%= submit_tag 'Filtrar', class: 'btn btn-primary', style: 'margin-top: 32px;' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Estatísticas -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body text-center">
+          <h6>Valor Total</h6>
+          <h2><%= number_to_currency(@total_value, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body text-center">
+          <h6>Total Pago</h6>
+          <h2><%= number_to_currency(@total_paid, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-warning text-dark">
+        <div class="card-body text-center">
+          <h6>Saldo Pendente</h6>
+          <h2><%= number_to_currency(@total_balance, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body text-center">
+          <h6>Cursos</h6>
+          <h2><%= @active_courses %> / <%= @completed_courses %></h2>
+          <small>Activos / Concluídos</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Formações de <%= nome_mes(@month) %> de <%= @year %></h5>
+    </div>
+    <div class="card-body p-0">
+      <% if @training_courses.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Formando</th>
+                <th>Módulo</th>
+                <th>Início</th>
+                <th class="text-end">Valor Total</th>
+                <th class="text-end">Pago</th>
+                <th class="text-end">Saldo</th>
+                <th class="text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @training_courses.each do |course| %>
+                <tr>
+                  <td><%= course.student_name %></td>
+                  <td><%= course.module_name %></td>
+                  <td><%= course.start_date.strftime('%d/%m/%Y') if course.start_date %></td>
+                  <td class="text-end">
+                    <%= number_to_currency(course.total_value || 0, unit: 'AOA', separator: ',', delimiter: '.') %>
+                  </td>
+                  <td class="text-end">
+                    <%= number_to_currency(course.amount_paid || 0, unit: 'AOA', separator: ',', delimiter: '.') %>
+                  </td>
+                  <td class="text-end">
+                    <%= number_to_currency(course.balance, unit: 'AOA', separator: ',', delimiter: '.') %>
+                  </td>
+                  <td class="text-center">
+                    <% if course.active? %>
+                      <span class="badge bg-info">Activo</span>
+                    <% elsif course.completed? %>
+                      <span class="badge bg-success">Concluído</span>
+                    <% else %>
+                      <span class="badge bg-secondary">Cancelado</span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1"></i>
+          <p class="mt-2">Nenhum curso registrado neste período</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

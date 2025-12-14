@@ -1,0 +1,131 @@
+<%= form_with(model: product, local: true) do |form| %>
+  <% if product.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(product.errors.count, "erro") %> impediram que este produto fosse guardado:</h5>
+      <ul class="mb-0">
+        <% product.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :name, 'Nome do Produto/Serviço', class: 'form-label' %>
+        <%= form.text_field :name, class: 'form-control', required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= form.label :category, 'Categoria', class: 'form-label' %>
+        <%= form.select :category,
+            [['Gráfica', 'grafica'], ['Cyber Café', 'lanhouse'], ['Ambos', 'ambos']],
+            {},
+            class: 'form-select',
+            required: true %>
+        <small class="form-text text-muted">Onde este produto/serviço é usado</small>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= form.label :active, 'Status', class: 'form-label' %>
+        <%= form.select :active,
+            [['Ativo', true], ['Inativo', false]],
+            {},
+            class: 'form-select' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :unit, 'Unidade de Medida', class: 'form-label' %>
+        <%= form.text_field :unit, class: 'form-control', required: true, placeholder: 'Ex: unidade, hora, página, metro' %>
+        <small class="form-text text-muted">Como este produto/serviço é medido</small>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :base_price, 'Preço Base', class: 'form-label' %>
+        <div class="input-group">
+          <span class="input-group-text">AOA</span>
+          <%= form.number_field :base_price, class: 'form-control', step: '0.01', min: '0', required: true %>
+        </div>
+        <small class="form-text text-muted">Preço padrão por unidade</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header bg-light">
+      <h6 class="mb-0"><i class="bi bi-calculator"></i> Custos para Precificação Inteligente (Opcional)</h6>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="mb-3">
+            <%= form.label :labor_cost, 'Custo de Mão de Obra', class: 'form-label' %>
+            <div class="input-group">
+              <span class="input-group-text">AOA</span>
+              <%= form.number_field :labor_cost, class: 'form-control', step: '0.01', min: '0', value: product.labor_cost || 0 %>
+            </div>
+            <small class="form-text text-muted">Custo de trabalho/serviço</small>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="mb-3">
+            <%= form.label :material_cost, 'Custo de Material', class: 'form-label' %>
+            <div class="input-group">
+              <span class="input-group-text">AOA</span>
+              <%= form.number_field :material_cost, class: 'form-control', step: '0.01', min: '0', value: product.material_cost || 0 %>
+            </div>
+            <small class="form-text text-muted">Custo de materiais e insumos</small>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="mb-3">
+            <%= form.label :purchase_price, 'Preço de Compra', class: 'form-label' %>
+            <div class="input-group">
+              <span class="input-group-text">AOA</span>
+              <%= form.number_field :purchase_price, class: 'form-control', step: '0.01', min: '0', value: product.purchase_price || 0 %>
+            </div>
+            <small class="form-text text-muted">Preço de aquisição</small>
+          </div>
+        </div>
+      </div>
+
+      <% if product.persisted? && product.has_cost_data? %>
+        <div class="alert alert-success mb-0">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <strong><i class="bi bi-check-circle"></i> Preço Sugerido (com 65% de margem):</strong>
+              <h4 class="mb-0"><%= number_to_currency(product.suggested_price, unit: 'AOA', separator: ',', delimiter: '.') %></h4>
+            </div>
+            <div class="col-md-4 text-end">
+              <%= link_to pricing_calculator_invoices_path, class: 'btn btn-sm btn-outline-success' do %>
+                <i class="bi bi-calculator"></i> Ver Calculadora
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle"></i> <strong>Dica:</strong> Após criar o produto, você pode adicionar regras de preço para descontos por quantidade na página de detalhes.
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= form.submit 'Guardar', class: 'btn btn-primary' %>
+    <%= link_to 'Cancelar', product.persisted? ? product : products_path, class: 'btn btn-secondary' %>
+  </div>
+<% end %>

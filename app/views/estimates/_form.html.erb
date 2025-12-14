@@ -1,0 +1,155 @@
+<%= form_with(model: estimate, local: true) do |form| %>
+  <% if estimate.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(estimate.errors.count, "erro") %>:</h5>
+      <ul class="mb-0">
+        <% estimate.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="mb-3">
+        <%= form.label :customer_id, 'Cliente', class: 'form-label' %>
+        <%= form.select :customer_id,
+            options_from_collection_for_select(@customers, :id, :name, estimate.customer_id),
+            { prompt: 'Selecione um cliente' },
+            class: 'form-select',
+            required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= form.label :valid_until, 'Válido até', class: 'form-label' %>
+        <%= form.date_field :valid_until, class: 'form-control' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :notes, 'Notas', class: 'form-label' %>
+    <%= form.text_area :notes, rows: 3, class: 'form-control' %>
+  </div>
+
+  <!-- Items -->
+  <div class="card mb-3">
+    <div class="card-header bg-light">
+      <h5 class="mb-0"><i class="bi bi-list"></i> Items do Orçamento</h5>
+    </div>
+    <div class="card-body">
+      <div id="estimate-items">
+        <%= form.fields_for :estimate_items do |item_form| %>
+          <div class="estimate-item border rounded p-3 mb-3">
+            <%= item_form.hidden_field :_destroy, class: 'item-destroy' %>
+
+            <div class="row">
+              <div class="col-md-5">
+                <div class="mb-2">
+                  <%= item_form.label :product_id, 'Produto', class: 'form-label' %>
+                  <%= item_form.select :product_id,
+                      options_from_collection_for_select(@products, :id, :name, item_form.object.product_id),
+                      { prompt: 'Selecione um produto' },
+                      class: 'form-select product-select',
+                      required: true %>
+                </div>
+              </div>
+
+              <div class="col-md-2">
+                <div class="mb-2">
+                  <%= item_form.label :quantity, 'Quantidade', class: 'form-label' %>
+                  <%= item_form.number_field :quantity, class: 'form-control quantity-input', min: 1, step: 1, required: true %>
+                </div>
+              </div>
+
+              <div class="col-md-2">
+                <div class="mb-2">
+                  <%= item_form.label :unit_price, 'Preço Unit.', class: 'form-label' %>
+                  <%= item_form.number_field :unit_price, class: 'form-control price-input', step: '0.01', min: '0', required: true %>
+                </div>
+              </div>
+
+              <div class="col-md-2">
+                <div class="mb-2">
+                  <%= item_form.label :subtotal, 'Subtotal', class: 'form-label' %>
+                  <%= item_form.number_field :subtotal, class: 'form-control subtotal-input', step: '0.01', readonly: true %>
+                </div>
+              </div>
+
+              <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-danger mb-2 remove-item">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <button type="button" class="btn btn-outline-primary" id="add-item">
+        <i class="bi bi-plus-circle"></i> Adicionar Item
+      </button>
+    </div>
+
+    <div class="card-footer bg-light">
+      <div class="row">
+        <div class="col-md-8 text-end">
+          <h5>Total:</h5>
+        </div>
+        <div class="col-md-4 text-end">
+          <h4 class="text-primary" id="grand-total">AOA 0.00</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= form.submit 'Guardar Orçamento', class: 'btn btn-primary' %>
+    <%= link_to 'Cancelar', estimates_path, class: 'btn btn-secondary' %>
+  </div>
+<% end %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Calculate subtotals and total
+  function calculateTotals() {
+    let grandTotal = 0;
+
+    document.querySelectorAll('.estimate-item').forEach(item => {
+      if (item.querySelector('.item-destroy').value === 'true') return;
+
+      const quantity = parseFloat(item.querySelector('.quantity-input').value) || 0;
+      const price = parseFloat(item.querySelector('.price-input').value) || 0;
+      const subtotal = quantity * price;
+
+      item.querySelector('.subtotal-input').value = subtotal.toFixed(2);
+      grandTotal += subtotal;
+    });
+
+    document.getElementById('grand-total').textContent = grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' AOA';
+  }
+
+  // Add event listeners to quantity and price inputs
+  document.addEventListener('input', function(e) {
+    if (e.target.matches('.quantity-input') || e.target.matches('.price-input')) {
+      calculateTotals();
+    }
+  });
+
+  // Remove item
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.remove-item')) {
+      const item = e.target.closest('.estimate-item');
+      item.querySelector('.item-destroy').value = 'true';
+      item.style.display = 'none';
+      calculateTotals();
+    }
+  });
+
+  // Initial calculation
+  calculateTotals();
+});
+</script>

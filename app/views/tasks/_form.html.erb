@@ -1,0 +1,61 @@
+<%= form_with(model: task, local: true) do |form| %>
+  <% if task.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(task.errors.count, "erro") %>:</h5>
+      <ul class="mb-0">
+        <% task.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="mb-3">
+        <%= form.label :title, 'Título', class: 'form-label' %>
+        <%= form.text_field :title, class: 'form-control', required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= form.label :status, 'Status', class: 'form-label' %>
+        <%= form.select :status,
+            [['Pendente', 'pendente'], ['Concluída', 'concluida'], ['Cancelada', 'cancelada']],
+            {},
+            class: 'form-select',
+            required: true %>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :description, 'Descrição', class: 'form-label' %>
+    <%= form.text_area :description, rows: 4, class: 'form-control' %>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :assigned_to_user_id, 'Atribuir a', class: 'form-label' %>
+        <%= form.select :assigned_to_user_id,
+            options_from_collection_for_select(@users, :id, :email, task.assigned_to_user_id),
+            { prompt: 'Selecione um utilizador (opcional)' },
+            class: 'form-select' %>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :due_date, 'Prazo', class: 'form-label' %>
+        <%= form.date_field :due_date, class: 'form-control' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= form.submit 'Guardar', class: 'btn btn-primary' %>
+    <%= link_to 'Cancelar', tasks_path, class: 'btn btn-secondary' %>
+  </div>
+<% end %>

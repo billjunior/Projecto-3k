@@ -1,0 +1,167 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-file-earmark-text"></i> Orçamentos</h1>
+    </div>
+    <div class="col-auto">
+      <%= link_to new_estimate_path, class: 'btn btn-primary' do %>
+        <i class="bi bi-plus-circle"></i> Novo Orçamento
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Pending Approval Section (for Managers) -->
+  <% if current_user.role.in?(['admin', 'financeiro']) && @pending_estimates.any? %>
+    <div class="card mb-4 border-warning border-3">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">
+          <i class="bi bi-exclamation-triangle-fill"></i> Pendentes de Aprovação
+          <span class="badge bg-danger ms-2"><%= @pending_count %></span>
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Cliente</th>
+                <th>Criado por</th>
+                <th>Data</th>
+                <th class="text-end">Valor Total</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @pending_estimates.each do |estimate| %>
+                <tr class="table-warning">
+                  <td>
+                    <%= link_to estimate.estimate_number, estimate, class: 'text-decoration-none fw-bold' %>
+                  </td>
+                  <td><%= estimate.customer.name %></td>
+                  <td><small class="text-muted"><%= estimate.created_by_user&.email || 'N/A' %></small></td>
+                  <td><%= estimate.created_at.strftime('%d/%m/%Y %H:%M') %></td>
+                  <td class="text-end"><strong><%= number_to_currency(estimate.total_value, unit: "AOA") %></strong></td>
+                  <td class="text-end">
+                    <%= link_to estimate, class: 'btn btn-sm btn-outline-primary' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                    <%= link_to approve_estimate_path(estimate), data: { turbo_method: :post, turbo_confirm: 'Aprovar orçamento?' }, class: 'btn btn-sm btn-success' do %>
+                      <i class="bi bi-check-circle"></i> Aprovar
+                    <% end %>
+                    <%= link_to reject_estimate_path(estimate), data: { turbo_method: :post, turbo_confirm: 'Recusar orçamento?' }, class: 'btn btn-sm btn-danger' do %>
+                      <i class="bi bi-x-circle"></i> Recusar
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Draft Estimates -->
+  <% if @draft_estimates.any? %>
+    <div class="card mb-4">
+      <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Rascunhos (<%= @draft_estimates.count %>)</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th>Válido até</th>
+                <th class="text-end">Valor Total</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @draft_estimates.each do |estimate| %>
+                <tr>
+                  <td>
+                    <%= link_to estimate.estimate_number, estimate, class: 'text-decoration-none fw-bold' %>
+                  </td>
+                  <td><%= estimate.customer.name %></td>
+                  <td><%= estimate.created_at.strftime('%d/%m/%Y') %></td>
+                  <td>
+                    <% if estimate.valid_until %>
+                      <span class="badge bg-<%= estimate.valid_until < Date.today ? 'danger' : 'info' %>">
+                        <%= estimate.valid_until.strftime('%d/%m/%Y') %>
+                      </span>
+                    <% else %>
+                      <span class="text-muted">-</span>
+                    <% end %>
+                  </td>
+                  <td class="text-end"><strong><%= number_to_currency(estimate.total_value, unit: "AOA") %></strong></td>
+                  <td class="text-end">
+                    <%= link_to estimate, class: 'btn btn-sm btn-outline-primary' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                    <%= link_to edit_estimate_path(estimate), class: 'btn btn-sm btn-outline-secondary' do %>
+                      <i class="bi bi-pencil"></i>
+                    <% end %>
+                    <% if estimate.can_submit_for_approval? %>
+                      <%= link_to submit_for_approval_estimate_path(estimate), data: { turbo_method: :post, turbo_confirm: 'Enviar orçamento para aprovação?' }, class: 'btn btn-sm btn-warning' do %>
+                        <i class="bi bi-send"></i> Enviar
+                      <% end %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Approved Estimates -->
+  <div class="card">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0"><i class="bi bi-check-circle"></i> Orçamentos Aprovados Recentes</h5>
+    </div>
+    <div class="card-body p-0">
+      <% if @approved_estimates.any? %>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th class="text-end">Valor</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @approved_estimates.each do |estimate| %>
+                <tr>
+                  <td><%= link_to estimate.estimate_number, estimate %></td>
+                  <td><%= estimate.customer.name %></td>
+                  <td><%= estimate.created_at.strftime('%d/%m/%Y') %></td>
+                  <td class="text-end"><%= number_to_currency(estimate.total_value, unit: "AOA") %></td>
+                  <td class="text-end">
+                    <%= link_to estimate, class: 'btn btn-sm btn-outline-primary' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                    <%= link_to convert_to_job_estimate_path(estimate), data: { turbo_method: :post, turbo_confirm: 'Criar trabalho?' }, class: 'btn btn-sm btn-info' do %>
+                      <i class="bi bi-arrow-right-circle"></i> Criar Trabalho
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="text-muted p-3 mb-0">Nenhum orçamento aprovado</p>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<div class="email-header">
+  <h1>Conta Bloqueada</h1>
+  <p>Desbloqueie sua conta</p>
+</div>
+
+<div class="email-body">
+  <p>Olá <strong><%= @resource.email %></strong>!</p>
+
+  <p>Sua conta foi bloqueada automaticamente devido a um número excessivo de tentativas de login sem sucesso.</p>
+
+  <p>Por segurança, você precisa desbloquear sua conta antes de tentar fazer login novamente. Clique no botão abaixo:</p>
+
+  <div class="button-container">
+    <%= link_to 'Desbloquear Minha Conta', unlock_url(@resource, unlock_token: @token), class: 'email-button' %>
+  </div>
+
+  <div class="info-box">
+    <p><strong>Por que isso aconteceu?</strong></p>
+    <p>Bloqueamos temporariamente sua conta após <%= @resource.class.maximum_attempts %> tentativas de login sem sucesso. Esta é uma medida de segurança para proteger sua conta contra acessos não autorizados.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <p style="font-size: 14px; color: #6c757d;">
+    Se você não reconhece esta atividade, recomendamos alterar sua senha após desbloquear a conta.
+  </p>
+</div>
+
+<div class="email-footer">
+  <p><strong>CRM 3K</strong></p>
+  <p>3K - Soluções Gráficas, uma empresa do grupo ITTECH</p>
+  <p style="font-size: 12px; color: #adb5bd; margin-top: 15px;">
+    Este é um email automático, por favor não responda.
+  </p>
+</div>

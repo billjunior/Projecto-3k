@@ -1,0 +1,23 @@
+one:
+  name: "Test Company One"
+  subdomain: "company1"
+  status: 0  # active
+  subscription_start: <%= 30.days.ago.to_date %>
+  subscription_end: <%= 30.days.from_now.to_date %>
+  settings: {}
+
+two:
+  name: "Test Company Two"
+  subdomain: "company2"
+  status: 0  # active
+  subscription_start: <%= 60.days.ago.to_date %>
+  subscription_end: <%= 60.days.from_now.to_date %>
+  settings: {}
+
+expired:
+  name: "Expired Company"
+  subdomain: "expired"
+  status: 1  # expired
+  subscription_start: <%= 90.days.ago.to_date %>
+  subscription_end: <%= 5.days.ago.to_date %>
+  settings: {}

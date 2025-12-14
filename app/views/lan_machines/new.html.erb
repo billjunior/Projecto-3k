@@ -1,0 +1,20 @@
+<div class="container">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-plus-circle"></i> Nova Máquina LAN</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Painel', root_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Máquinas LAN', lan_machines_path %></li>
+          <li class="breadcrumb-item active">Nova</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <%= render 'form', lan_machine: @lan_machine %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,194 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1>
+        <i class="bi bi-receipt"></i> <%= @invoice.invoice_number %>
+        <span class="badge bg-<%= @invoice.status == 'pago' ? 'success' : @invoice.status == 'parcial' ? 'warning' : 'danger' %>">
+          <%= @invoice.status.capitalize %>
+        </span>
+      </h1>
+    </div>
+    <div class="col-auto">
+      <%= link_to edit_invoice_path(@invoice), class: 'btn btn-warning' do %>
+        <i class="bi bi-pencil"></i> Editar
+      <% end %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card mb-3">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informações</h5>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-5">Cliente:</dt>
+            <dd class="col-sm-7"><%= link_to @invoice.customer.name, @invoice.customer %></dd>
+
+            <dt class="col-sm-5">Tipo:</dt>
+            <dd class="col-sm-7">
+              <span class="badge bg-secondary"><%= @invoice.invoice_type.humanize %></span>
+            </dd>
+
+            <dt class="col-sm-5">Data:</dt>
+            <dd class="col-sm-7"><%= @invoice.invoice_date.strftime('%d/%m/%Y') %></dd>
+
+            <% if @invoice.due_date %>
+              <dt class="col-sm-5">Vencimento:</dt>
+              <dd class="col-sm-7">
+                <span class="badge bg-<%= @invoice.due_date < Date.today && @invoice.status != 'pago' ? 'danger' : 'info' %>">
+                  <%= @invoice.due_date.strftime('%d/%m/%Y') %>
+                </span>
+              </dd>
+            <% end %>
+
+            <dt class="col-sm-5">Valor Total:</dt>
+            <dd class="col-sm-7"><h5 class="mb-0"><%= number_to_currency(@invoice.total_value, unit: "AOA") %></h5></dd>
+
+            <dt class="col-sm-5">Pago:</dt>
+            <dd class="col-sm-7 text-success"><strong><%= number_to_currency(@invoice.paid_value, unit: "AOA") %></strong></dd>
+
+            <dt class="col-sm-5">Saldo:</dt>
+            <dd class="col-sm-7">
+              <strong class="text-<%= @invoice.balance > 0 ? 'danger' : 'success' %>">
+                <%= number_to_currency(@invoice.balance, unit: "AOA") %>
+              </strong>
+            </dd>
+          </dl>
+
+          <% if @invoice.notes.present? %>
+            <hr>
+            <strong>Notas:</strong>
+            <p class="mb-0"><%= simple_format(@invoice.notes) %></p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Payments -->
+      <div class="card">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-cash"></i> Pagamentos</h5>
+          <% if @invoice.balance > 0 %>
+            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#newPaymentModal">
+              <i class="bi bi-plus"></i>
+            </button>
+          <% end %>
+        </div>
+        <div class="card-body p-0">
+          <% if @payments.any? %>
+            <div class="list-group list-group-flush">
+              <% @payments.each do |payment| %>
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong><%= number_to_currency(payment.amount, unit: "AOA") %></strong><br>
+                    <small class="text-muted">
+                      <%= payment.payment_date.strftime('%d/%m/%Y') %>
+                      <% if payment.payment_method.present? %>
+                        - <%= payment.payment_method %>
+                      <% end %>
+                    </small>
+                  </div>
+                  <%= link_to invoice_payment_path(@invoice, payment), data: { turbo_method: :delete, turbo_confirm: 'Remover?' }, class: 'btn btn-sm btn-outline-danger' do %>
+                    <i class="bi bi-trash"></i>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="text-muted p-3 mb-0">Nenhum pagamento registrado</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-list"></i> Items da Fatura</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Descrição</th>
+                  <th class="text-center">Quantidade</th>
+                  <th class="text-end">Preço Unitário</th>
+                  <th class="text-end">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @invoice_items.each do |item| %>
+                  <tr>
+                    <td>
+                      <%= item.description %>
+                      <% if item.product %>
+                        <br><small class="text-muted"><%= item.product.name %></small>
+                      <% end %>
+                    </td>
+                    <td class="text-center"><%= item.quantity %></td>
+                    <td class="text-end"><%= number_to_currency(item.unit_price, unit: "AOA") %></td>
+                    <td class="text-end"><strong><%= number_to_currency(item.subtotal, unit: "AOA") %></strong></td>
+                  </tr>
+                <% end %>
+              </tbody>
+              <tfoot>
+                <tr class="table-light">
+                  <th colspan="3" class="text-end">Total:</th>
+                  <th class="text-end">
+                    <h4 class="text-primary mb-0"><%= number_to_currency(@invoice.total_value, unit: "AOA") %></h4>
+                  </th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="newPaymentModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <%= form_with url: invoice_payments_path(@invoice), method: :post, local: true do |f| %>
+        <div class="modal-header">
+          <h5 class="modal-title">Registrar Pagamento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <strong>Saldo a pagar:</strong> <%= number_to_currency(@invoice.balance, unit: "AOA") %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :amount, 'Valor Pago', class: 'form-label' %>
+            <div class="input-group">
+              <span class="input-group-text">AOA</span>
+              <%= f.number_field :amount, class: 'form-control', step: '0.01', min: '0.01', max: @invoice.balance, value: @invoice.balance, required: true %>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :payment_method, 'Método de Pagamento', class: 'form-label' %>
+            <%= f.select :payment_method,
+                [['Dinheiro', 'dinheiro'], ['Multibanco', 'multibanco'], ['Transferência', 'transferencia'], ['Cheque', 'cheque'], ['Outro', 'outro']],
+                { prompt: 'Selecione' },
+                class: 'form-select' %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :notes, 'Notas', class: 'form-label' %>
+            <%= f.text_area :notes, rows: 2, class: 'form-control' %>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <%= f.submit 'Registrar Pagamento', class: 'btn btn-success' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

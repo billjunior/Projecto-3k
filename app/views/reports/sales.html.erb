@@ -1,0 +1,148 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-currency-exchange"></i> Relatório Geral de Vendas</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Relatórios', reports_path %></li>
+          <li class="breadcrumb-item active">Vendas</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Filtro de Período -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: sales_reports_path, method: :get, class: 'row g-3' do |f| %>
+        <div class="col-md-5">
+          <label class="form-label">Data Início</label>
+          <%= date_field_tag :start_date, @start_date, class: 'form-control' %>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Data Fim</label>
+          <%= date_field_tag :end_date, @end_date, class: 'form-control' %>
+        </div>
+        <div class="col-md-2">
+          <%= submit_tag 'Filtrar', class: 'btn btn-primary', style: 'margin-top: 32px;' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Estatísticas de Vendas -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body text-center">
+          <h6>Total Vendido</h6>
+          <h2><%= number_to_currency(@total_sales, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+          <small><%= @invoices.count %> faturas</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body text-center">
+          <h6>Vendas Pagas</h6>
+          <h2><%= number_to_currency(@paid_sales, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+          <small><%= ((@paid_sales.to_f / @total_sales * 100).round(1) if @total_sales > 0) || 0 %>% do total</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body text-center">
+          <h6>Orçamentos</h6>
+          <h2><%= @estimates.count %></h2>
+          <small><%= @estimates_approved.count %> aprovados</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-warning text-dark">
+        <div class="card-body text-center">
+          <h6>Taxa de Conversão</h6>
+          <h2><%= @conversion_rate ? "#{@conversion_rate.round(1)}%" : 'N/A' %></h2>
+          <small>Orçamentos → Aprovados</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trabalhos -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="bi bi-printer"></i> Trabalhos</h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-6">
+              <h2><%= @jobs.count %></h2>
+              <p class="text-muted">Total</p>
+            </div>
+            <div class="col-6">
+              <h2 class="text-success"><%= @jobs_completed.count %></h2>
+              <p class="text-muted">Concluídos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="bi bi-graph-up"></i> Desempenho</h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-6">
+              <h2><%= ((@jobs_completed.count.to_f / @jobs.count * 100).round(1) if @jobs.count > 0) || 0 %>%</h2>
+              <p class="text-muted">Taxa de Conclusão</p>
+            </div>
+            <div class="col-6">
+              <h2><%= number_to_currency(@total_sales / (@invoices.count > 0 ? @invoices.count : 1), unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+              <p class="text-muted">Ticket Médio</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráfico de Vendas Mensais (últimos 12 meses) -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Vendas Mensais (Últimos 12 Meses)</h5>
+    </div>
+    <div class="card-body">
+      <% if @monthly_sales.any? %>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Mês</th>
+                <th class="text-end">Faturação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @monthly_sales.sort_by { |k, v| k }.reverse.each do |month, total| %>
+                <tr>
+                  <td><%= month.strftime('%B %Y') %></td>
+                  <td class="text-end"><strong><%= number_to_currency(total, unit: 'AOA', separator: ',', delimiter: '.') %></strong></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1"></i>
+          <p class="mt-2">Sem dados de vendas mensais</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,100 @@
+<%= form_with(model: daily_revenue, local: true, class: 'needs-validation', novalidate: true) do |f| %>
+  <% if daily_revenue.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(daily_revenue.errors.count, "erro") %> impediram o registo:</h5>
+      <ul class="mb-0">
+        <% daily_revenue.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= f.label :date, 'Data', class: 'form-label' %>
+        <%= f.date_field :date, class: 'form-control', required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <div class="mb-3">
+        <%= f.label :description, 'Denominação/Descrição', class: 'form-label' %>
+        <%= f.text_field :description, class: 'form-control', required: true,
+            placeholder: 'Ex: Impressão a cores, Cópias, Digitalização, etc' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= f.label :quantity, 'Quantidade', class: 'form-label' %>
+        <%= f.number_field :quantity, class: 'form-control', step: 1, min: 0,
+            placeholder: '0' %>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= f.label :unit_price, 'Preço Unitário', class: 'form-label' %>
+        <div class="input-group">
+          <span class="input-group-text">AOA</span>
+          <%= f.number_field :unit_price, class: 'form-control', step: '0.01', min: 0,
+              placeholder: '0,00' %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= f.label :entry, 'Entrada (Receita)', class: 'form-label' %>
+        <div class="input-group">
+          <span class="input-group-text">AOA</span>
+          <%= f.number_field :entry, class: 'form-control', step: '0.01', min: 0,
+              placeholder: '0,00' %>
+        </div>
+        <small class="text-muted">Valor recebido</small>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= f.label :exit, 'Saída (Despesa)', class: 'form-label' %>
+        <div class="input-group">
+          <span class="input-group-text">AOA</span>
+          <%= f.number_field :exit, class: 'form-control', step: '0.01', min: 0,
+              placeholder: '0,00' %>
+        </div>
+        <small class="text-muted">Valor pago</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= f.label :payment_type, 'Tipo de Pagamento', class: 'form-label' %>
+        <%= f.select :payment_type,
+            options_for_select([['Manual', 'manual'], ['Transferência Bancária', 'bank_transfer']],
+            daily_revenue.payment_type),
+            {},
+            { class: 'form-select', required: true } %>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= f.label :notes, 'Notas/Observações', class: 'form-label' %>
+        <%= f.text_area :notes, class: 'form-control', rows: 1,
+            placeholder: 'Informações adicionais (opcional)' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between">
+    <%= link_to 'Cancelar', daily_revenues_path, class: 'btn btn-secondary' %>
+    <%= f.submit 'Guardar Receita', class: 'btn btn-primary' %>
+  </div>
+<% end %>

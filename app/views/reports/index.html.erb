@@ -1,0 +1,194 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-graph-up"></i> Relatórios do Sistema</h1>
+      <p class="text-muted">Visualize e analise os dados do seu negócio</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Cyber Café Reports -->
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm border-primary">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="bi bi-pc-display"></i> Cyber Café</h5>
+        </div>
+        <div class="card-body">
+          <h6 class="card-title">Sessões LAN</h6>
+          <p class="card-text text-muted">Relatório mensal de sessões do Cyber Café com receitas e estatísticas</p>
+          <ul class="list-unstyled mt-3">
+            <li><i class="bi bi-check-circle text-success"></i> Sessões ativas e fechadas</li>
+            <li><i class="bi bi-check-circle text-success"></i> Receita total e por máquina</li>
+            <li><i class="bi bi-check-circle text-success"></i> Exportação em PDF</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <%= link_to lan_sessions_reports_path, class: 'btn btn-primary w-100' do %>
+            <i class="bi bi-file-earmark-bar-graph"></i> Ver Relatório
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inventory Reports -->
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm border-warning">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0"><i class="bi bi-box-seam"></i> Inventário</h5>
+        </div>
+        <div class="card-body">
+          <h6 class="card-title">Gestão de Stock</h6>
+          <p class="card-text text-muted">Produtos mais comprados e vendidos, análise de inventário</p>
+          <ul class="list-unstyled mt-3">
+            <li><i class="bi bi-check-circle text-success"></i> Produtos mais comprados</li>
+            <li><i class="bi bi-check-circle text-success"></i> Produtos com mais saídas</li>
+            <li><i class="bi bi-check-circle text-success"></i> Alertas de stock baixo</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <%= link_to reports_inventory_items_path, class: 'btn btn-warning w-100' do %>
+            <i class="bi bi-file-earmark-bar-graph"></i> Ver Relatório
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoice Reports -->
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm border-success">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0"><i class="bi bi-receipt"></i> Faturas</h5>
+        </div>
+        <div class="card-body">
+          <h6 class="card-title">Análise de Faturação</h6>
+          <p class="card-text text-muted">Faturas emitidas, pagas e pendentes por período</p>
+          <ul class="list-unstyled mt-3">
+            <li><i class="bi bi-check-circle text-success"></i> Total faturado vs pago</li>
+            <li><i class="bi bi-check-circle text-success"></i> Faturas por status</li>
+            <li><i class="bi bi-check-circle text-success"></i> Análise por período</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <%= link_to invoices_reports_path, class: 'btn btn-success w-100' do %>
+            <i class="bi bi-file-earmark-bar-graph"></i> Ver Relatório
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer Reports -->
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm border-info">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0"><i class="bi bi-people"></i> Clientes</h5>
+        </div>
+        <div class="card-body">
+          <h6 class="card-title">Análise de Clientes</h6>
+          <p class="card-text text-muted">Estatísticas de clientes e top clientes por faturação</p>
+          <ul class="list-unstyled mt-3">
+            <li><i class="bi bi-check-circle text-success"></i> Total de clientes</li>
+            <li><i class="bi bi-check-circle text-success"></i> Top 10 clientes</li>
+            <li><i class="bi bi-check-circle text-success"></i> Clientes com faturas</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <%= link_to customers_reports_path, class: 'btn btn-info w-100' do %>
+            <i class="bi bi-file-earmark-bar-graph"></i> Ver Relatório
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Opportunities Reports (CRM) -->
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm border-danger">
+        <div class="card-header bg-danger text-white">
+          <h5 class="mb-0"><i class="bi bi-trophy"></i> Oportunidades</h5>
+        </div>
+        <div class="card-body">
+          <h6 class="card-title">Pipeline CRM</h6>
+          <p class="card-text text-muted">Análise do funil de vendas e conversão de oportunidades</p>
+          <ul class="list-unstyled mt-3">
+            <li><i class="bi bi-check-circle text-success"></i> Oportunidades por fase</li>
+            <li><i class="bi bi-check-circle text-success"></i> Taxa de conversão</li>
+            <li><i class="bi bi-check-circle text-success"></i> Valor ponderado</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <%= link_to opportunities_reports_path, class: 'btn btn-danger w-100' do %>
+            <i class="bi bi-file-earmark-bar-graph"></i> Ver Relatório
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sales Reports -->
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm border-dark">
+        <div class="card-header bg-dark text-white">
+          <h5 class="mb-0"><i class="bi bi-currency-exchange"></i> Vendas</h5>
+        </div>
+        <div class="card-body">
+          <h6 class="card-title">Relatório Geral de Vendas</h6>
+          <p class="card-text text-muted">Análise completa de vendas, orçamentos e trabalhos</p>
+          <ul class="list-unstyled mt-3">
+            <li><i class="bi bi-check-circle text-success"></i> Vendas por período</li>
+            <li><i class="bi bi-check-circle text-success"></i> Conversão de orçamentos</li>
+            <li><i class="bi bi-check-circle text-success"></i> Trabalhos concluídos</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <%= link_to sales_reports_path, class: 'btn btn-dark w-100' do %>
+            <i class="bi bi-file-earmark-bar-graph"></i> Ver Relatório
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Revenues Report -->
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm border-primary">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="bi bi-cash-coin"></i> Receitas Diárias</h5>
+        </div>
+        <div class="card-body">
+          <h6 class="card-title">Controlo de Receitas</h6>
+          <p class="card-text text-muted">Relatório mensal de entradas e saídas do Cyber Café</p>
+          <ul class="list-unstyled mt-3">
+            <li><i class="bi bi-check-circle text-success"></i> Total de entradas</li>
+            <li><i class="bi bi-check-circle text-success"></i> Total de saídas</li>
+            <li><i class="bi bi-check-circle text-success"></i> Saldo do período</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <%= link_to daily_revenues_reports_path, class: 'btn btn-primary w-100' do %>
+            <i class="bi bi-file-earmark-bar-graph"></i> Ver Relatório
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Training Courses Report -->
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm border-info">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0"><i class="bi bi-mortarboard"></i> Formações Profissionais</h5>
+        </div>
+        <div class="card-body">
+          <h6 class="card-title">Cursos de Formação</h6>
+          <p class="card-text text-muted">Relatório mensal de cursos e pagamentos</p>
+          <ul class="list-unstyled mt-3">
+            <li><i class="bi bi-check-circle text-success"></i> Valor total dos cursos</li>
+            <li><i class="bi bi-check-circle text-success"></i> Valores pagos e pendentes</li>
+            <li><i class="bi bi-check-circle text-success"></i> Cursos ativos e concluídos</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <%= link_to training_courses_reports_path, class: 'btn btn-info w-100' do %>
+            <i class="bi bi-file-earmark-bar-graph"></i> Ver Relatório
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

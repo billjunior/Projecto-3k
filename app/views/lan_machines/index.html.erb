@@ -1,0 +1,118 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-pc-display"></i> Máquinas Cyber Café</h1>
+    </div>
+    <div class="col-auto">
+      <%= link_to new_lan_session_path, class: 'btn btn-success me-2' do %>
+        <i class="bi bi-play-circle"></i> Iniciar Sessão
+      <% end %>
+      <%= link_to new_lan_machine_path, class: 'btn btn-primary' do %>
+        <i class="bi bi-plus-circle"></i> Nova Máquina
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Status Overview -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card text-white bg-success">
+        <div class="card-body text-center">
+          <h2 class="mb-0"><%= @available_machines.count %></h2>
+          <small>Máquinas Disponíveis</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-white bg-danger">
+        <div class="card-body text-center">
+          <h2 class="mb-0"><%= @occupied_machines.count %></h2>
+          <small>Máquinas Ocupadas</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-white bg-warning">
+        <div class="card-body text-center">
+          <h2 class="mb-0"><%= @lan_machines.where(status: 'avariado').count %></h2>
+          <small>Máquinas Avariadas</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-white bg-info">
+        <div class="card-body text-center">
+          <h2 class="mb-0"><%= @lan_machines.count %></h2>
+          <small>Total de Máquinas</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Machines Grid -->
+  <div class="row g-3">
+    <% @lan_machines.each do |machine| %>
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 <%= 'border-success border-2' if machine.status == 'livre' %> <%= 'border-danger border-2' if machine.status == 'ocupado' %>">
+          <div class="card-header d-flex justify-content-between align-items-center
+            <%= 'bg-success text-white' if machine.status == 'livre' %>
+            <%= 'bg-danger text-white' if machine.status == 'ocupado' %>
+            <%= 'bg-warning' if machine.status == 'avariado' %>
+            <%= 'bg-info text-white' if machine.status == 'reservado' %>">
+            <strong><i class="bi bi-pc-display"></i> <%= machine.name %></strong>
+            <span class="badge bg-white text-dark"><%= machine.status.capitalize %></span>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <small class="text-muted">Taxa por Hora:</small><br>
+              <h4 class="mb-0"><%= number_to_currency(machine.hourly_rate, unit: "AOA") %>/h</h4>
+            </div>
+
+            <% if machine.current_session %>
+              <% session = machine.current_session %>
+              <div class="alert alert-info mb-2 py-2">
+                <strong><i class="bi bi-person"></i> <%= session.customer&.name || 'Sem cliente' %></strong><br>
+                <small>
+                  Início: <%= session.start_time.strftime('%H:%M') %><br>
+                  Tempo: <%= session.elapsed_minutes %> min
+                </small>
+              </div>
+              <%= link_to close_lan_session_path(session), data: { turbo_method: :post, turbo_confirm: 'Fechar sessão?' }, class: 'btn btn-danger btn-sm w-100' do %>
+                <i class="bi bi-stop-circle"></i> Fechar Sessão
+              <% end %>
+            <% elsif machine.status == 'livre' %>
+              <%= link_to new_lan_session_path(machine_id: machine.id), class: 'btn btn-success btn-sm w-100' do %>
+                <i class="bi bi-play-circle"></i> Iniciar Sessão
+              <% end %>
+            <% end %>
+
+            <% if machine.notes.present? %>
+              <div class="mt-2">
+                <small class="text-muted"><%= machine.notes %></small>
+              </div>
+            <% end %>
+          </div>
+          <div class="card-footer bg-light">
+            <div class="d-flex gap-2 justify-content-end">
+              <%= link_to machine, class: 'btn btn-sm btn-outline-primary' do %>
+                <i class="bi bi-eye"></i>
+              <% end %>
+              <%= link_to edit_lan_machine_path(machine), class: 'btn btn-sm btn-outline-secondary' do %>
+                <i class="bi bi-pencil"></i>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <% if @lan_machines.empty? %>
+      <div class="col-12">
+        <div class="alert alert-info text-center">
+          <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+          <p class="mb-0">Nenhuma máquina cadastrada. <%= link_to 'Criar primeira máquina', new_lan_machine_path %></p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

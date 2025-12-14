@@ -1,0 +1,73 @@
+<%= form_with(model: lead, local: true) do |form| %>
+  <% if lead.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(lead.errors.count, "erro") %>:</h5>
+      <ul class="mb-0">
+        <% lead.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :name, 'Nome', class: 'form-label' %>
+        <%= form.text_field :name, class: 'form-control', required: true %>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :company, 'Empresa', class: 'form-label' %>
+        <%= form.text_field :company, class: 'form-control' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= form.label :email, 'Email', class: 'form-label' %>
+        <%= form.email_field :email, class: 'form-control' %>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= form.label :phone, 'Telefone', class: 'form-label' %>
+        <%= form.text_field :phone, class: 'form-control' %>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= form.label :contact_source, 'Como nos contactou', class: 'form-label' %>
+        <%= form.select :contact_source, [['WhatsApp', 'whatsapp'], ['Telefone', 'telefone'], ['Instagram', 'instagram'], ['Facebook', 'facebook'], ['X (Twitter)', 'twitter'], ['Outro', 'outro']], { include_blank: 'Selecione...' }, class: 'form-select' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :classification, 'Classificação', class: 'form-label' %>
+        <%= form.select :classification, [['Quente', 'hot'], ['Morno', 'warm'], ['Frio', 'cold']], {}, class: 'form-select', required: true %>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :assigned_to_user_id, 'Responsável', class: 'form-label' %>
+        <%= form.collection_select :assigned_to_user_id, User.all, :id, :name, { include_blank: 'Selecione...' }, class: 'form-select' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :notes, 'Notas', class: 'form-label' %>
+    <%= form.text_area :notes, rows: 4, class: 'form-control' %>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= form.submit 'Guardar', class: 'btn btn-primary' %>
+    <%= link_to 'Cancelar', lead.persisted? ? lead : leads_path, class: 'btn btn-secondary' %>
+  </div>
+<% end %>

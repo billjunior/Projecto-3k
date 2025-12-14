@@ -1,0 +1,65 @@
+admin_one:
+  tenant: one
+  name: "Admin User"
+  email: "admin@company1.com"
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  role: 0  # commercial
+  admin: true
+  super_admin: false
+  active: true
+  confirmed_at: <%= 1.day.ago %>
+  created_at: <%= 30.days.ago %>
+  updated_at: <%= 1.day.ago %>
+
+user_one:
+  tenant: one
+  name: "Regular User"
+  email: "user@company1.com"
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  role: 2  # attendant
+  admin: false
+  super_admin: false
+  active: true
+  confirmed_at: <%= 1.day.ago %>
+  created_at: <%= 30.days.ago %>
+  updated_at: <%= 1.day.ago %>
+
+admin_two:
+  tenant: two
+  name: "Admin Company Two"
+  email: "admin@company2.com"
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  role: 0  # commercial
+  admin: true
+  super_admin: false
+  active: true
+  confirmed_at: <%= 1.day.ago %>
+  created_at: <%= 60.days.ago %>
+  updated_at: <%= 1.day.ago %>
+
+super_admin:
+  tenant: one
+  name: "Super Admin"
+  email: "superadmin@crm3k.com"
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  role: 0  # commercial
+  admin: true
+  super_admin: true
+  active: true
+  confirmed_at: <%= 1.day.ago %>
+  created_at: <%= 90.days.ago %>
+  updated_at: <%= 1.day.ago %>
+
+unconfirmed_user:
+  tenant: one
+  name: "Unconfirmed User"
+  email: "unconfirmed@company1.com"
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  role: 2  # attendant
+  admin: false
+  super_admin: false
+  active: true
+  confirmed_at: nil
+  confirmation_sent_at: <%= 1.hour.ago %>
+  created_at: <%= 1.day.ago %>
+  updated_at: <%= 1.hour.ago %>

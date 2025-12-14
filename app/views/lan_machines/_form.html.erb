@@ -1,0 +1,49 @@
+<%= form_with(model: lan_machine, local: true) do |form| %>
+  <% if lan_machine.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(lan_machine.errors.count, "erro") %>:</h5>
+      <ul class="mb-0">
+        <% lan_machine.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :name, 'Nome da Máquina', class: 'form-label' %>
+        <%= form.text_field :name, class: 'form-control', required: true, placeholder: 'Ex: PC 01, PC 02' %>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= form.label :status, 'Status', class: 'form-label' %>
+        <%= form.select :status,
+            [['Livre', 'livre'], ['Ocupado', 'ocupado'], ['Avariado', 'avariado'], ['Reservado', 'reservado']],
+            {},
+            class: 'form-select',
+            required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= form.label :hourly_rate, 'Taxa por Hora (AOA)', class: 'form-label' %>
+        <%= form.number_field :hourly_rate, class: 'form-control', step: '0.01', min: '0.01', required: true %>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :notes, 'Notas', class: 'form-label' %>
+    <%= form.text_area :notes, rows: 3, class: 'form-control', placeholder: 'Especificações, problemas conhecidos, etc.' %>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= form.submit 'Guardar', class: 'btn btn-primary' %>
+    <%= link_to 'Cancelar', lan_machines_path, class: 'btn btn-secondary' %>
+  </div>
+<% end %>

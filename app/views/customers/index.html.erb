@@ -1,0 +1,98 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-people"></i> Clientes</h1>
+    </div>
+    <div class="col-auto">
+      <%= link_to new_customer_path, class: 'btn btn-primary' do %>
+        <i class="bi bi-person-plus"></i> Novo Cliente
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Telefone</th>
+              <th>Email</th>
+              <th>NIF</th>
+              <th class="text-center">Trabalhos</th>
+              <th class="text-center">Sessões LAN</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @customers.any? %>
+              <% @customers.each do |customer| %>
+                <tr>
+                  <td>
+                    <%= link_to customer.name, customer, class: 'text-decoration-none fw-bold' %>
+                  </td>
+                  <td>
+                    <% badge_class = case customer.customer_type
+                                     when 'particular' then 'secondary'
+                                     when 'empresa' then 'primary'
+                                     when 'escola' then 'success'
+                                     when 'governo' then 'danger'
+                                     when 'ong' then 'warning text-dark'
+                                     when 'revendedor' then 'info'
+                                     when 'parceiro' then 'dark'
+                                     when 'fornecedor' then 'light text-dark border'
+                                     when 'franquia' then 'primary'
+                                     when 'startup' then 'info'
+                                     else 'secondary'
+                                     end %>
+                    <span class="badge bg-<%= badge_class %>">
+                      <%= customer.customer_type_label %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if customer.phone.present? %>
+                      <i class="bi bi-telephone"></i> <%= customer.phone %>
+                    <% end %>
+                    <% if customer.whatsapp.present? %>
+                      <br><i class="bi bi-whatsapp text-success"></i> <%= customer.whatsapp %>
+                    <% end %>
+                  </td>
+                  <td><%= customer.email %></td>
+                  <td><%= customer.tax_id %></td>
+                  <td class="text-center">
+                    <span class="badge bg-primary"><%= customer.jobs.count %></span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-info"><%= customer.lan_sessions.count %></span>
+                  </td>
+                  <td class="text-end">
+                    <%= link_to customer, class: 'btn btn-sm btn-outline-primary' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                    <%= link_to edit_customer_path(customer), class: 'btn btn-sm btn-outline-secondary' do %>
+                      <i class="bi bi-pencil"></i>
+                    <% end %>
+                    <%= link_to customer, data: { turbo_method: :delete, turbo_confirm: 'Tem a certeza?' }, class: 'btn btn-sm btn-outline-danger' do %>
+                      <i class="bi bi-trash"></i>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="8" class="text-center text-muted py-5">
+                  <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                  Nenhum cliente encontrado
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <%= paginate @customers if @customers.any? %>
+    </div>
+  </div>
+</div>

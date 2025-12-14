@@ -1,0 +1,33 @@
+================================================================================
+<%= @tenant.name %>
+RELATÓRIO MENSAL DE SESSÕES LAN
+<%= @month_name %> de <%= @year %>
+================================================================================
+
+Prezado(a),
+
+Segue em anexo o relatório mensal detalhado das sessões do Cyber Café para o
+período de <%= @month_name %> de <%= @year %>.
+
+RESUMO DO PERÍODO
+--------------------------------------------------------------------------------
+Total de Sessões:          <%= @total_sessions %>
+Sessões Ativas:            <%= @active_sessions %>
+Sessões Fechadas:          <%= @closed_sessions %>
+Receita Total:             <%= number_to_currency(@total_revenue, unit: "AOA", separator: ",", delimiter: ".") %>
+
+O relatório em PDF anexo contém todos os detalhes das sessões, incluindo:
+  - Listagem completa de todas as sessões do período
+  - Informações de máquina, cliente, duração e valores
+  - Status de cada sessão (ativa, fechada, cancelada)
+  - Totalizadores por categoria
+
+Este relatório foi gerado automaticamente pelo sistema CRM 3K.
+
+Atenciosamente,
+Sistema CRM 3K
+
+================================================================================
+Este é um email automático. Por favor, não responda a esta mensagem.
+Relatório gerado em <%= Time.current.strftime('%d/%m/%Y às %H:%M') %>
+================================================================================

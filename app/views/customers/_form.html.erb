@@ -1,0 +1,90 @@
+<%= form_with(model: customer, local: true) do |form| %>
+  <% if customer.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(customer.errors.count, "erro") %> impediram que este cliente fosse guardado:</h5>
+      <ul class="mb-0">
+        <% customer.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :name, 'Nome', class: 'form-label' %>
+        <%= form.text_field :name, class: 'form-control', required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= form.label :customer_type, 'Tipo de Cliente', class: 'form-label' %>
+        <%= form.select :customer_type,
+            [
+              ['Particular', 'particular'],
+              ['Empresa', 'empresa'],
+              ['Escola', 'escola'],
+              ['Governo', 'governo'],
+              ['ONG', 'ong'],
+              ['Revendedor', 'revendedor'],
+              ['Parceiro', 'parceiro'],
+              ['Fornecedor', 'fornecedor'],
+              ['Franquia', 'franquia'],
+              ['Startup', 'startup']
+            ],
+            {},
+            class: 'form-select',
+            required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="mb-3">
+        <%= form.label :tax_id, 'NIF', class: 'form-label' %>
+        <%= form.text_field :tax_id, class: 'form-control' %>
+        <small class="form-text text-muted">Opcional (organizações)</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= form.label :phone, 'Telefone', class: 'form-label' %>
+        <%= form.text_field :phone, class: 'form-control', required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= form.label :whatsapp, 'WhatsApp', class: 'form-label' %>
+        <%= form.text_field :whatsapp, class: 'form-control' %>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= form.label :email, 'Email', class: 'form-label' %>
+        <%= form.email_field :email, class: 'form-control' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :address, 'Morada', class: 'form-label' %>
+    <%= form.text_area :address, rows: 3, class: 'form-control' %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :notes, 'Notas', class: 'form-label' %>
+    <%= form.text_area :notes, rows: 3, class: 'form-control' %>
+    <small class="form-text text-muted">Informações adicionais sobre o cliente</small>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= form.submit 'Guardar', class: 'btn btn-primary' %>
+    <%= link_to 'Cancelar', customer.persisted? ? customer : customers_path, class: 'btn btn-secondary' %>
+  </div>
+<% end %>

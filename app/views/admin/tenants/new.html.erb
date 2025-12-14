@@ -1,0 +1,20 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-plus-circle"></i> Novo Tenant</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Admin', admin_tenants_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Tenants', admin_tenants_path %></li>
+          <li class="breadcrumb-item active">Novo</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <%= render 'form', tenant: @tenant %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<div class="email-header">
+  <h1>Bem-vindo ao CRM 3K!</h1>
+  <p>Confirme sua conta</p>
+</div>
+
+<div class="email-body">
+  <p>Olá <strong><%= @email %></strong>!</p>
+
+  <p>Obrigado por se cadastrar no CRM 3K. Para começar a usar sua conta, precisamos confirmar seu endereço de email.</p>
+
+  <p>Clique no botão abaixo para confirmar sua conta:</p>
+
+  <div class="button-container">
+    <%= link_to 'Confirmar Minha Conta', confirmation_url(@resource, confirmation_token: @token), class: 'email-button' %>
+  </div>
+
+  <div class="info-box">
+    <p><strong>O que acontece depois?</strong></p>
+    <p>Após confirmar seu email, você terá acesso completo à sua conta e poderá começar a utilizar todos os recursos do CRM 3K.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <p style="font-size: 14px; color: #6c757d;">
+    Se você não criou uma conta no CRM 3K, pode ignorar este email com segurança.
+  </p>
+</div>
+
+<div class="email-footer">
+  <p><strong>CRM 3K</strong></p>
+  <p>3K - Soluções Gráficas, uma empresa do grupo ITTECH</p>
+  <p style="font-size: 12px; color: #adb5bd; margin-top: 15px;">
+    Este é um email automático, por favor não responda.
+  </p>
+</div>

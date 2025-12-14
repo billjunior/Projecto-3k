@@ -1,0 +1,17 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-pencil"></i> Editar Orçamento</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Painel', root_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Orçamentos', estimates_path %></li>
+          <li class="breadcrumb-item"><%= link_to @estimate.estimate_number, @estimate %></li>
+          <li class="breadcrumb-item active">Editar</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <%= render 'form', estimate: @estimate %>
+</div>

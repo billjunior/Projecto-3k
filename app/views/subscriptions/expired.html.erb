@@ -1,0 +1,39 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card border-danger shadow">
+        <div class="card-header bg-danger text-white">
+          <h3 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Subscrição Expirada</h3>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-warning">
+            <h5><i class="bi bi-calendar-x"></i> A sua subscrição expirou</h5>
+            <% if current_user&.tenant %>
+              <p class="mb-0">
+                <strong>Empresa:</strong> <%= current_user.tenant.name %><br>
+                <strong>Data de Expiração:</strong> <%= current_user.tenant.subscription_end&.strftime('%d/%m/%Y') %>
+              </p>
+            <% end %>
+          </div>
+
+          <h5 class="mt-4">O que aconteceu?</h5>
+          <p>A subscrição da sua empresa no CRM 3K expirou. Todas as funcionalidades do sistema estão temporariamente desativadas.</p>
+
+          <h5 class="mt-4">Como renovar?</h5>
+          <p>Para renovar a sua subscrição e recuperar o acesso ao sistema, por favor:</p>
+          <ul>
+            <li>Contacte o administrador do sistema</li>
+            <li>Ou envie um email para: <strong>suporte@crm3k.com</strong></li>
+            <li>Telefone: <strong>+244 900 000 000</strong></li>
+          </ul>
+
+          <div class="mt-4">
+            <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: 'btn btn-secondary' do %>
+              <i class="bi bi-box-arrow-right"></i> Sair do Sistema
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

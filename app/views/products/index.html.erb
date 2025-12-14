@@ -1,0 +1,92 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-box"></i> Produtos e Serviços</h1>
+    </div>
+    <div class="col-auto">
+      <%= link_to new_product_path, class: 'btn btn-primary' do %>
+        <i class="bi bi-plus-circle"></i> Novo Produto
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Categoria</th>
+              <th>Unidade</th>
+              <th class="text-end">Preço Base</th>
+              <th class="text-center">Regras de Preço</th>
+              <th class="text-center">Status</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @products.any? %>
+              <% @products.each do |product| %>
+                <tr class="<%= 'table-secondary' unless product.active %>">
+                  <td>
+                    <%= link_to product.name, product, class: 'text-decoration-none fw-bold' %>
+                  </td>
+                  <td>
+                    <% if product.category == 'grafica' %>
+                      <span class="badge bg-primary"><i class="bi bi-printer"></i> Gráfica</span>
+                    <% elsif product.category == 'lanhouse' %>
+                      <span class="badge bg-info"><i class="bi bi-pc-display"></i> Cyber Café</span>
+                    <% else %>
+                      <span class="badge bg-success"><i class="bi bi-star"></i> Ambos</span>
+                    <% end %>
+                  </td>
+                  <td><%= product.unit %></td>
+                  <td class="text-end">
+                    <strong><%= number_to_currency(product.base_price, unit: "AOA") %></strong>
+                  </td>
+                  <td class="text-center">
+                    <% if product.price_rules.any? %>
+                      <span class="badge bg-warning">
+                        <i class="bi bi-tag"></i> <%= product.price_rules.count %>
+                      </span>
+                    <% else %>
+                      <span class="text-muted">-</span>
+                    <% end %>
+                  </td>
+                  <td class="text-center">
+                    <% if product.active %>
+                      <span class="badge bg-success">Ativo</span>
+                    <% else %>
+                      <span class="badge bg-secondary">Inativo</span>
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <%= link_to product, class: 'btn btn-sm btn-outline-primary' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                    <%= link_to edit_product_path(product), class: 'btn btn-sm btn-outline-secondary' do %>
+                      <i class="bi bi-pencil"></i>
+                    <% end %>
+                    <%= link_to product, data: { turbo_method: :delete, turbo_confirm: 'Tem a certeza?' }, class: 'btn btn-sm btn-outline-danger' do %>
+                      <i class="bi bi-trash"></i>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="7" class="text-center text-muted py-5">
+                  <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                  Nenhum produto encontrado
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <%= paginate @products if @products.any? %>
+    </div>
+  </div>
+</div>

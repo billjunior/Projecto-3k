@@ -1,0 +1,23 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-plus-circle"></i> Nova Receita Diária</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Cyber Café', lan_machines_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Receitas Diárias', daily_revenues_path %></li>
+          <li class="breadcrumb-item active">Nova</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="bi bi-clipboard"></i> Registo de Receita/Despesa</h5>
+    </div>
+    <div class="card-body">
+      <%= render 'form', daily_revenue: @daily_revenue %>
+    </div>
+  </div>
+</div>

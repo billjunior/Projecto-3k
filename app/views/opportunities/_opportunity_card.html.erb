@@ -1,0 +1,44 @@
+<div class="kanban-card"
+     draggable="true"
+     data-opportunity-id="<%= opportunity.id %>"
+     data-kanban-target="card"
+     data-action="dragstart->kanban#dragStart dragend->kanban#dragEnd">
+
+  <div class="d-flex justify-content-between align-items-start mb-2">
+    <h6 class="mb-0">
+      <%= link_to opportunity.title, opportunity, class: 'text-decoration-none' %>
+    </h6>
+  </div>
+
+  <div class="mb-2">
+    <small class="text-muted">
+      <i class="bi bi-building"></i> <%= opportunity.customer.name %>
+    </small>
+  </div>
+
+  <% if opportunity.value.present? %>
+    <div class="mb-2">
+      <strong class="text-success"><%= number_to_currency(opportunity.value, unit: 'AOA', separator: ',', delimiter: '.') %></strong>
+      <% if opportunity.probability.present? %>
+        <small class="text-muted">(<%= opportunity.probability %>%)</small>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if opportunity.expected_close_date.present? %>
+    <div class="mb-2">
+      <small class="text-muted">
+        <i class="bi bi-calendar-event"></i>
+        <%= l(opportunity.expected_close_date, format: :short) %>
+      </small>
+    </div>
+  <% end %>
+
+  <% if opportunity.assigned_to_user.present? %>
+    <div>
+      <small>
+        <i class="bi bi-person"></i> <%= opportunity.assigned_to_user.name %>
+      </small>
+    </div>
+  <% end %>
+</div>

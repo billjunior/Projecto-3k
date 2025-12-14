@@ -1,0 +1,130 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-trophy"></i> Relatório de Oportunidades</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Relatórios', reports_path %></li>
+          <li class="breadcrumb-item active">Oportunidades</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <%= link_to kanban_opportunities_path, class: 'btn btn-primary' do %>
+        <i class="bi bi-kanban"></i> Ver Pipeline Kanban
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Estatísticas -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body text-center">
+          <h6>Total de Oportunidades</h6>
+          <h2><%= @opportunities.count %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-warning text-dark">
+        <div class="card-body text-center">
+          <h6>Valor Total</h6>
+          <h2><%= number_to_currency(@total_value, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body text-center">
+          <h6>Valor Ponderado</h6>
+          <h2><%= number_to_currency(@weighted_value, unit: 'AOA', separator: ',', delimiter: '.') %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body text-center">
+          <h6>Taxa de Conversão</h6>
+          <h2><%= @conversion_rate ? "#{@conversion_rate.round(1)}%" : 'N/A' %></h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Oportunidades por Fase -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">Oportunidades por Fase</h5>
+    </div>
+    <div class="card-body">
+      <div class="row text-center">
+        <% @opportunities_by_stage.each do |stage, count| %>
+          <div class="col-md-2">
+            <div class="mb-3">
+              <h2><%= count %></h2>
+              <p class="text-muted">
+                <% stage_names = {
+                  'new_opportunity' => 'Novo',
+                  'qualified' => 'Qualificado',
+                  'proposal' => 'Proposta',
+                  'negotiation' => 'Negociação',
+                  'won' => 'Ganho',
+                  'lost' => 'Perdido'
+                } %>
+                <%= stage_names[stage] || stage.capitalize %>
+              </p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela de Oportunidades Abertas -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Oportunidades em Andamento</h5>
+    </div>
+    <div class="card-body p-0">
+      <% open_opportunities = @opportunities.where.not(stage: [:won, :lost]) %>
+      <% if open_opportunities.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Cliente</th>
+                <th class="text-end">Valor</th>
+                <th class="text-center">Probabilidade</th>
+                <th class="text-center">Fase</th>
+                <th>Responsável</th>
+                <th>Previsão</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% open_opportunities.each do |opp| %>
+                <tr>
+                  <td><%= link_to opp.title, opp %></td>
+                  <td><%= opp.customer.name %></td>
+                  <td class="text-end"><%= number_to_currency(opp.value || 0, unit: 'AOA', separator: ',', delimiter: '.') %></td>
+                  <td class="text-center"><%= opp.probability %>%</td>
+                  <td class="text-center">
+                    <span class="badge bg-primary"><%= opp.stage_display_name %></span>
+                  </td>
+                  <td><%= opp.assigned_to_user&.name || 'Não atribuído' %></td>
+                  <td><%= opp.expected_close_date&.strftime('%d/%m/%Y') || '-' %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1"></i>
+          <p class="mt-2">Nenhuma oportunidade em andamento</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

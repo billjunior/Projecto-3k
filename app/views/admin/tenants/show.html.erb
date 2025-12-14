@@ -1,0 +1,213 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-building"></i> <%= @tenant.name %></h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Admin', admin_tenants_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Tenants', admin_tenants_path %></li>
+          <li class="breadcrumb-item active"><%= @tenant.name %></li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <%= link_to edit_admin_tenant_path(@tenant), class: 'btn btn-warning' do %>
+        <i class="bi bi-pencil"></i> Editar
+      <% end %>
+      <%= link_to admin_tenant_path(@tenant), data: { turbo_method: :delete, turbo_confirm: 'Tem a certeza? Todos os dados deste tenant serão perdidos!' }, class: 'btn btn-danger' do %>
+        <i class="bi bi-trash"></i> Eliminar
+      <% end %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4">
+      <!-- Informação do Tenant -->
+      <div class="card mb-3">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informação do Tenant</h5>
+        </div>
+        <div class="card-body">
+          <% if @tenant.logo.attached? %>
+            <div class="text-center mb-3">
+              <%= image_tag @tenant.logo, style: 'max-height: 120px;', class: 'img-thumbnail' %>
+            </div>
+          <% end %>
+
+          <dl class="row mb-0">
+            <dt class="col-sm-5">Nome:</dt>
+            <dd class="col-sm-7"><strong><%= @tenant.name %></strong></dd>
+
+            <dt class="col-sm-5">Subdomínio:</dt>
+            <dd class="col-sm-7"><code><%= @tenant.subdomain %></code></dd>
+
+            <dt class="col-sm-5">Estado:</dt>
+            <dd class="col-sm-7">
+              <%
+                badge_class = case @tenant.status
+                when 'active' then 'bg-success'
+                when 'expired' then 'bg-danger'
+                when 'suspended' then 'bg-warning'
+                else 'bg-secondary'
+                end
+
+                status_text = case @tenant.status
+                when 'active' then 'Ativo'
+                when 'expired' then 'Expirado'
+                when 'suspended' then 'Suspenso'
+                else @tenant.status
+                end
+              %>
+              <span class="badge <%= badge_class %>">
+                <%= status_text %>
+              </span>
+            </dd>
+
+            <% if @tenant.subscription_start.present? %>
+              <dt class="col-sm-5">Início:</dt>
+              <dd class="col-sm-7">
+                <i class="bi bi-calendar-check"></i> <%= @tenant.subscription_start.strftime('%d/%m/%Y') %>
+              </dd>
+            <% end %>
+
+            <% if @tenant.subscription_end.present? %>
+              <dt class="col-sm-5">Fim:</dt>
+              <dd class="col-sm-7 <%= @tenant.expired? ? 'text-danger' : '' %>">
+                <i class="bi bi-calendar-x"></i> <%= @tenant.subscription_end.strftime('%d/%m/%Y') %>
+                <% if @tenant.expiring_soon? && @tenant.status == 'active' %>
+                  <br><small class="text-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Expira em <%= @tenant.days_until_expiration %> dias
+                  </small>
+                <% end %>
+              </dd>
+            <% end %>
+
+            <dt class="col-sm-12 mt-3"><strong>Configurações:</strong></dt>
+            <dd class="col-sm-12">
+              <% if @tenant.settings.any? %>
+                <ul class="list-unstyled mb-0">
+                  <% if @tenant.settings['primary_color'].present? %>
+                    <li>
+                      <i class="bi bi-palette"></i> Cor Primária:
+                      <span class="badge" style="background-color: <%= @tenant.settings['primary_color'] %>;">
+                        <%= @tenant.settings['primary_color'] %>
+                      </span>
+                    </li>
+                  <% end %>
+                  <% if @tenant.settings['secondary_color'].present? %>
+                    <li>
+                      <i class="bi bi-palette"></i> Cor Secundária:
+                      <span class="badge" style="background-color: <%= @tenant.settings['secondary_color'] %>;">
+                        <%= @tenant.settings['secondary_color'] %>
+                      </span>
+                    </li>
+                  <% end %>
+                  <% if @tenant.settings['currency'].present? %>
+                    <li><i class="bi bi-cash"></i> Moeda: <strong><%= @tenant.settings['currency'] %></strong></li>
+                  <% end %>
+                  <% if @tenant.settings['tax_rate'].present? %>
+                    <li><i class="bi bi-percent"></i> Taxa de Imposto: <strong><%= @tenant.settings['tax_rate'] %>%</strong></li>
+                  <% end %>
+                </ul>
+              <% else %>
+                <small class="text-muted">Sem configurações personalizadas</small>
+              <% end %>
+            </dd>
+          </dl>
+        </div>
+        <div class="card-footer text-muted">
+          <small>Criado em <%= @tenant.created_at.strftime('%d/%m/%Y às %H:%M') %></small>
+        </div>
+      </div>
+
+      <!-- Estender Subscrição -->
+      <div class="card mb-3">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="bi bi-calendar-plus"></i> Estender Subscrição</h5>
+        </div>
+        <div class="card-body">
+          <%= form_with url: extend_subscription_admin_tenant_path(@tenant), method: :post, local: true do |form| %>
+            <div class="mb-3">
+              <label class="form-label">Número de Meses</label>
+              <select name="months" class="form-select" required>
+                <option value="">Selecione...</option>
+                <option value="1">1 mês</option>
+                <option value="3">3 meses</option>
+                <option value="6">6 meses</option>
+                <option value="12">12 meses (1 ano)</option>
+                <option value="24">24 meses (2 anos)</option>
+              </select>
+            </div>
+            <%= form.submit 'Estender Subscrição', class: 'btn btn-primary w-100' %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <!-- Utilizadores do Tenant -->
+      <div class="card">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-people"></i> Utilizadores</h5>
+          <span class="badge bg-info"><%= @tenant.users.count %> utilizadores</span>
+        </div>
+        <div class="card-body p-0">
+          <% if @tenant.users.any? %>
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Super Admin</th>
+                    <th>Ativo</th>
+                    <th>Criado em</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @tenant.users.order(created_at: :desc).each do |user| %>
+                    <tr>
+                      <td><strong><%= user.name %></strong></td>
+                      <td><%= user.email %></td>
+                      <td>
+                        <span class="badge bg-secondary">
+                          <%= user.role&.capitalize %>
+                        </span>
+                      </td>
+                      <td>
+                        <% if user.super_admin? %>
+                          <span class="badge bg-danger">
+                            <i class="bi bi-shield-fill-check"></i> Sim
+                          </span>
+                        <% else %>
+                          <span class="text-muted">-</span>
+                        <% end %>
+                      </td>
+                      <td>
+                        <% if user.active? %>
+                          <span class="badge bg-success">Ativo</span>
+                        <% else %>
+                          <span class="badge bg-secondary">Inativo</span>
+                        <% end %>
+                      </td>
+                      <td>
+                        <small class="text-muted">
+                          <%= user.created_at.strftime('%d/%m/%Y') %>
+                        </small>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% else %>
+            <p class="text-muted p-3 mb-0">
+              <i class="bi bi-inbox"></i> Nenhum utilizador registrado neste tenant
+            </p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

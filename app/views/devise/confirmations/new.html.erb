@@ -1,0 +1,152 @@
+<% company_settings = Tenant.first&.company_setting %>
+
+<style>
+  .confirmation-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  <% if company_settings&.logo&.attached? %>
+  .confirmation-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    background-image: url('<%= url_for(company_settings.logo) %>');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.05;
+    z-index: 0;
+  }
+  <% end %>
+
+  .confirmation-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 50px 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 450px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .confirmation-logo {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .confirmation-logo img {
+    max-width: 180px;
+    max-height: 80px;
+    margin-bottom: 15px;
+  }
+
+  .confirmation-logo h2 {
+    color: #333;
+    font-weight: 700;
+    margin: 0;
+    font-size: 28px;
+  }
+
+  .confirmation-logo p {
+    color: #666;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+
+  .confirmation-form .form-label {
+    color: #444;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .confirmation-form .form-control {
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+  }
+
+  .confirmation-form .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.1);
+  }
+
+  .confirmation-form .btn-confirm {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .confirmation-form .btn-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .confirmation-links {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .confirmation-links a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+  }
+
+  .confirmation-links a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+  }
+</style>
+
+<div class="confirmation-wrapper">
+  <div class="confirmation-card">
+    <div class="confirmation-logo">
+      <% if company_settings&.logo&.attached? %>
+        <%= image_tag company_settings.logo, alt: company_settings&.company_name || 'CRM 3K' %>
+      <% end %>
+      <h2>Reenviar Confirmação</h2>
+      <p>Insira seu email para reenviar as instruções de confirmação</p>
+    </div>
+
+    <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { class: 'confirmation-form', data: { turbo_method: :post } }) do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
+
+      <div class="mb-3">
+        <%= f.label :email, 'Email', class: 'form-label' %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", value: (resource.pending_reconfirmation? ? resource.unconfirmed_email : resource.email), class: 'form-control', placeholder: 'seu@email.com' %>
+      </div>
+
+      <div class="mt-4">
+        <%= f.submit "Reenviar instruções", class: 'btn btn-confirm' %>
+      </div>
+    <% end %>
+
+    <div class="confirmation-links">
+      <%= link_to "← Voltar ao login", new_session_path(resource_name) %>
+    </div>
+  </div>
+</div>

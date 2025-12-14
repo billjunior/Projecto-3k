@@ -1,0 +1,57 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-trophy"></i> <%= @opportunity.title %></h1>
+      <p class="text-muted">Cliente: <%= link_to @opportunity.customer.name, @opportunity.customer %></p>
+    </div>
+    <div class="col-auto">
+      <% if @opportunity.open? %>
+        <%= link_to convert_to_estimate_opportunity_path(@opportunity), data: { turbo_method: :post, turbo_confirm: 'Converter em orçamento?' }, class: 'btn btn-success' do %>
+          <i class="bi bi-file-earmark-text"></i> Converter em Orçamento
+        <% end %>
+        <%= link_to mark_as_won_opportunity_path(@opportunity), data: { turbo_method: :post }, class: 'btn btn-outline-success' do %>
+          <i class="bi bi-check-circle"></i> Marcar como Ganha
+        <% end %>
+        <%= link_to edit_opportunity_path(@opportunity, mark_as_lost: true), class: 'btn btn-outline-danger' do %>
+          <i class="bi bi-x-circle"></i> Marcar como Perdida
+        <% end %>
+      <% end %>
+      <%= link_to edit_opportunity_path(@opportunity), class: 'btn btn-warning' do %>
+        <i class="bi bi-pencil"></i> Editar
+      <% end %>
+      <%= link_to @opportunity, data: { turbo_method: :delete, turbo_confirm: 'Tem a certeza?' }, class: 'btn btn-danger' do %>
+        <i class="bi bi-trash"></i> Eliminar
+      <% end %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-3">
+        <div class="card-header bg-light"><h5 class="mb-0">Detalhes</h5></div>
+        <div class="card-body">
+          <dl class="row">
+            <dt class="col-sm-3">Título:</dt><dd class="col-sm-9"><%= @opportunity.title %></dd>
+            <dt class="col-sm-3">Cliente:</dt><dd class="col-sm-9"><%= link_to @opportunity.customer.name, @opportunity.customer %></dd>
+            <dt class="col-sm-3">Valor:</dt><dd class="col-sm-9"><%= number_to_currency(@opportunity.value || 0, unit: "AOA") %></dd>
+            <dt class="col-sm-3">Probabilidade:</dt><dd class="col-sm-9"><%= @opportunity.probability %>%</dd>
+            <dt class="col-sm-3">Valor Ponderado:</dt><dd class="col-sm-9 text-success"><strong><%= number_to_currency(@opportunity.weighted_value, unit: "AOA") %></strong></dd>
+            <dt class="col-sm-3">Fase:</dt><dd class="col-sm-9"><span class="badge bg-<%= @opportunity.won? ? 'success' : @opportunity.lost? ? 'danger' : 'primary' %>"><%= @opportunity.stage_display_name %></span></dd>
+            <dt class="col-sm-3">Previsão:</dt><dd class="col-sm-9"><%= @opportunity.expected_close_date&.strftime('%d/%m/%Y') %></dd>
+            <dt class="col-sm-3">Responsável:</dt><dd class="col-sm-9"><%= @opportunity.assigned_to_user&.name || 'Não atribuído' %></dd>
+            <dt class="col-sm-3">Criado por:</dt><dd class="col-sm-9"><%= @opportunity.created_by_user&.name %></dd>
+            <% if @opportunity.description.present? %>
+              <dt class="col-sm-12 mt-3">Descrição:</dt><dd class="col-sm-12"><%= simple_format(@opportunity.description) %></dd>
+            <% end %>
+            <% if @opportunity.closed? %>
+              <dt class="col-sm-3 mt-3">Data de Fecho:</dt><dd class="col-sm-9 mt-3"><%= @opportunity.actual_close_date&.strftime('%d/%m/%Y') %></dd>
+              <% if @opportunity.won_lost_reason.present? %>
+                <dt class="col-sm-3">Motivo:</dt><dd class="col-sm-9"><%= @opportunity.won_lost_reason %></dd>
+              <% end %>
+            <% end %>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
