@@ -7,8 +7,8 @@ class TaskPolicy < ApplicationPolicy
       if user.super_admin? || user.admin?
         scope.all
       else
-        scope.where(assigned_to_id: user.id)
-             .or(scope.where(created_by_id: user.id))
+        scope.where(assigned_to_user_id: user.id)
+             .or(scope.where(created_by_user_id: user.id))
       end
     end
   end
@@ -22,8 +22,8 @@ class TaskPolicy < ApplicationPolicy
     !user.cyber_tech? && (
       user.super_admin? ||
       user.admin? ||
-      record.assigned_to_id == user.id ||
-      record.created_by_id == user.id
+      record.assigned_to_user_id == user.id ||
+      record.created_by_user_id == user.id
     )
   end
 
@@ -36,15 +36,15 @@ class TaskPolicy < ApplicationPolicy
     # Can update if assigned to them, created by them, or if admin
     user.super_admin? ||
     user.admin? ||
-    record.assigned_to_id == user.id ||
-    record.created_by_id == user.id
+    record.assigned_to_user_id == user.id ||
+    record.created_by_user_id == user.id
   end
 
   def destroy?
     # Only creator or admin can delete
     user.super_admin? ||
     user.admin? ||
-    record.created_by_id == user.id
+    record.created_by_user_id == user.id
   end
 
   def manage?

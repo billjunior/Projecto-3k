@@ -35,9 +35,49 @@
     padding: 50px 40px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     width: 100%;
-    max-width: 450px;
+    max-width: 500px;
     position: relative;
     z-index: 1;
+  }
+
+  .login-tabs .nav-tabs {
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 30px;
+  }
+
+  .login-tabs .nav-link {
+    color: #666;
+    font-weight: 600;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 12px 24px;
+    transition: all 0.3s ease;
+  }
+
+  .login-tabs .nav-link:hover {
+    color: #667eea;
+    border-bottom-color: rgba(102, 126, 234, 0.3);
+  }
+
+  .login-tabs .nav-link.active {
+    color: #667eea;
+    background: none;
+    border-bottom-color: #667eea;
+  }
+
+  .tab-info {
+    background: #f8f9fa;
+    border-left: 4px solid #667eea;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #555;
+  }
+
+  .tab-info i {
+    color: #667eea;
+    margin-right: 8px;
   }
 
   .login-logo {
@@ -142,28 +182,85 @@
       <% end %>
     </div>
 
-    <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: 'login-form' }) do |f| %>
-      <div class="mb-3">
-        <%= f.label :email, 'Email', class: 'form-label' %>
-        <%= f.email_field :email, autofocus: true, autocomplete: "email", class: 'form-control', placeholder: 'seu@email.com' %>
-      </div>
+    <!-- Login Tabs -->
+    <div class="login-tabs">
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="crm-tab" data-bs-toggle="tab" data-bs-target="#crm-login" type="button" role="tab">
+            <i class="bi bi-briefcase"></i> Login CRM
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="cyber-tab" data-bs-toggle="tab" data-bs-target="#cyber-login" type="button" role="tab">
+            <i class="bi bi-pc-display"></i> Login Cyber Café
+          </button>
+        </li>
+      </ul>
 
-      <div class="mb-3">
-        <%= f.label :password, 'Senha', class: 'form-label' %>
-        <%= f.password_field :password, autocomplete: "current-password", class: 'form-control', placeholder: '••••••••' %>
-      </div>
+      <div class="tab-content">
+        <!-- CRM Login Tab -->
+        <div class="tab-pane fade show active" id="crm-login" role="tabpanel">
+          <div class="tab-info">
+            <i class="bi bi-info-circle"></i>
+            <strong>Sistema CRM:</strong> Acesso para comerciais, atendentes, financeiro e produção.
+          </div>
 
-      <% if devise_mapping.rememberable? %>
-        <div class="form-check">
-          <%= f.check_box :remember_me, class: 'form-check-input' %>
-          <%= f.label :remember_me, 'Lembrar-me', class: 'form-check-label' %>
+          <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: 'login-form' }) do |f| %>
+            <div class="mb-3">
+              <%= f.label :email, 'Email', class: 'form-label' %>
+              <%= f.email_field :email, autofocus: true, autocomplete: "email", class: 'form-control', placeholder: 'comercial@3k.com' %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :password, 'Senha', class: 'form-label' %>
+              <%= f.password_field :password, autocomplete: "current-password", class: 'form-control', placeholder: '••••••••' %>
+            </div>
+
+            <% if devise_mapping.rememberable? %>
+              <div class="form-check">
+                <%= f.check_box :remember_me, class: 'form-check-input' %>
+                <%= f.label :remember_me, 'Lembrar-me', class: 'form-check-label' %>
+              </div>
+            <% end %>
+
+            <div class="mt-4">
+              <%= f.submit "Entrar no CRM", class: 'btn btn-login' %>
+            </div>
+          <% end %>
         </div>
-      <% end %>
 
-      <div class="mt-4">
-        <%= f.submit "Entrar", class: 'btn btn-login' %>
+        <!-- Cyber Café Login Tab -->
+        <div class="tab-pane fade" id="cyber-login" role="tabpanel">
+          <div class="tab-info">
+            <i class="bi bi-info-circle"></i>
+            <strong>Cyber Café:</strong> Acesso para técnicos do cyber café (máquinas, sessões, inventário).
+          </div>
+
+          <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: 'login-form' }) do |f| %>
+            <div class="mb-3">
+              <%= f.label :email, 'Email', class: 'form-label' %>
+              <%= f.email_field :email, autocomplete: "email", class: 'form-control', placeholder: 'cyber@3k.com' %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :password, 'Senha', class: 'form-label' %>
+              <%= f.password_field :password, autocomplete: "current-password", class: 'form-control', placeholder: '••••••••' %>
+            </div>
+
+            <% if devise_mapping.rememberable? %>
+              <div class="form-check">
+                <%= f.check_box :remember_me, class: 'form-check-input' %>
+                <%= f.label :remember_me, 'Lembrar-me', class: 'form-check-label' %>
+              </div>
+            <% end %>
+
+            <div class="mt-4">
+              <%= f.submit "Entrar no Cyber Café", class: 'btn btn-login' %>
+            </div>
+          <% end %>
+        </div>
       </div>
-    <% end %>
+    </div>
 
     <div class="login-links">
       <%= render "devise/shared/links" %>
