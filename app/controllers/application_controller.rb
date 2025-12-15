@@ -36,11 +36,12 @@ class ApplicationController < ActionController::Base
   def check_crm_access
     return if devise_controller?
     return unless current_user
-    return if controller_path.start_with?('cyber/') # Skip for Cyber namespace
+    # Skip check for Cyber Café controllers
+    return if ['lan_machines', 'lan_sessions', 'daily_revenues', 'training_courses', 'inventory_items', 'inventory_movements'].include?(controller_name)
 
     # Cyber tech users should NOT access CRM main system
     if current_user.cyber_tech? && !current_user.super_admin?
-      redirect_to cyber_dashboard_path, alert: 'Você não tem acesso ao sistema CRM principal. Acesse o Cyber Café.'
+      redirect_to lan_machines_path, alert: 'Você não tem acesso ao sistema CRM principal. Acesse o Cyber Café.'
     end
   end
 
