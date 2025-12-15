@@ -1,0 +1,75 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-clock-history"></i> Detalhes do Log de Auditoria</h1>
+      <%= link_to "Voltar", audit_logs_path, class: "btn btn-secondary" %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Log #<%= @audit_log.id %></h5>
+    </div>
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Data/Hora:</strong><br>
+          <%= @audit_log.created_at.strftime("%d/%m/%Y %H:%M:%S") %>
+        </div>
+        <div class="col-md-6">
+          <strong>Usuário:</strong><br>
+          <%= @audit_log.user.name %> (<%= @audit_log.user.email %>)
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Ação:</strong><br>
+          <span class="badge bg-<%= @audit_log.action == 'create' ? 'success' : @audit_log.action == 'update' ? 'warning' : 'danger' %>">
+            <%= @audit_log.action_description %>
+          </span>
+        </div>
+        <div class="col-md-6">
+          <strong>Modelo:</strong><br>
+          <%= @audit_log.auditable_description %>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Endereço IP:</strong><br>
+          <%= @audit_log.ip_address %>
+        </div>
+        <div class="col-md-6">
+          <strong>User Agent:</strong><br>
+          <small><%= @audit_log.user_agent %></small>
+        </div>
+      </div>
+
+      <% if @audit_log.changed_data.present? %>
+        <hr>
+        <h6>Alterações Realizadas:</h6>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Campo</th>
+                <th>Valor Anterior</th>
+                <th>Novo Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @audit_log.formatted_changes.each do |field, values| %>
+                <tr>
+                  <td><strong><%= field %></strong></td>
+                  <td><code><%= values.is_a?(Hash) ? values[:from] : '' %></code></td>
+                  <td><code><%= values.is_a?(Hash) ? values[:to] : values %></code></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

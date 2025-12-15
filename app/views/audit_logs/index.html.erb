@@ -1,0 +1,85 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-clock-history"></i> Logs de Auditoria</h1>
+      <p class="text-muted">Registro de todas as alterações feitas no sistema</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: audit_logs_path, method: :get, class: "row g-3" do %>
+        <div class="col-md-3">
+          <label class="form-label">Usuário</label>
+          <%= select_tag :user_id,
+              options_from_collection_for_select(User.all, :id, :email, params[:user_id]),
+              { include_blank: "Todos", class: "form-select" } %>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Ação</label>
+          <%= select_tag :action_filter,
+              options_for_select([["Criar", "create"], ["Atualizar", "update"], ["Excluir", "destroy"]], params[:action_filter]),
+              { include_blank: "Todas", class: "form-select" } %>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Data Início</label>
+          <%= date_field_tag :start_date, params[:start_date], class: "form-control" %>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Data Fim</label>
+          <%= date_field_tag :end_date, params[:end_date], class: "form-control" %>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <%= submit_tag "Filtrar", class: "btn btn-primary me-2" %>
+          <%= link_to "Limpar", audit_logs_path, class: "btn btn-secondary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Audit Logs Table -->
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Data/Hora</th>
+              <th>Usuário</th>
+              <th>Ação</th>
+              <th>Modelo</th>
+              <th>ID Registro</th>
+              <th>IP</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @audit_logs.each do |log| %>
+              <tr>
+                <td><%= log.created_at.strftime("%d/%m/%Y %H:%M:%S") %></td>
+                <td><%= log.user.email %></td>
+                <td>
+                  <span class="badge bg-<%= log.action == 'create' ? 'success' : log.action == 'update' ? 'warning' : 'danger' %>">
+                    <%= log.action_description %>
+                  </span>
+                </td>
+                <td><%= log.auditable_type %></td>
+                <td>#<%= log.auditable_id %></td>
+                <td><small><%= log.ip_address %></small></td>
+                <td class="text-end">
+                  <%= link_to audit_log_path(log), class: "btn btn-sm btn-outline-primary" do %>
+                    <i class="bi bi-eye"></i>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer">
+      <%= paginate @audit_logs %>
+    </div>
+  </div>
+</div>

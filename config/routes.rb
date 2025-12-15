@@ -83,6 +83,9 @@ Rails.application.routes.draw do
     end
   end
 
+  # Audit Logs (Admin only)
+  resources :audit_logs, only: [:index, :show]
+
   # CRM - Leads and Opportunities
   resources :leads do
     member do

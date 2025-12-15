@@ -3,6 +3,7 @@ class ApplicationController < ActionController::Base
   include Pundit::Authorization
 
   before_action :authenticate_user!
+  before_action :set_current_user
   before_action :set_current_tenant
   before_action :check_subscription_status
   before_action :check_crm_access
@@ -15,6 +16,14 @@ class ApplicationController < ActionController::Base
   layout :determine_layout
 
   protected
+
+  def set_current_user
+    if current_user
+      Current.user = current_user
+      Current.ip_address = request.remote_ip
+      Current.user_agent = request.user_agent
+    end
+  end
 
   def set_current_tenant
     if current_user

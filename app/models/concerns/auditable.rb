@@ -31,30 +31,22 @@ module Auditable
   end
 
   def log_audit_event(action, record, extra_data = {})
-    audit_data = {
-      action: action,
-      model: record.class.name,
-      record_id: record.id,
-      user_id: current_user_id,
-      tenant_id: ActsAsTenant.current_tenant&.id,
-      timestamp: Time.current,
-      ip_address: current_ip_address
-    }.merge(extra_data)
+    return unless Current.user # Don't log if no user (e.g. rake tasks)
 
-    Rails.logger.info "[AUDIT] #{audit_data.to_json}"
-  end
-
-  def current_user_id
-    # Try to get current user from various contexts
-    if defined?(Current) && Current.respond_to?(:user)
-      Current.user&.id
-    elsif Thread.current[:current_user_id]
-      Thread.current[:current_user_id]
+    begin
+      AuditLog.create!(
+        user: Current.user,
+        tenant: ActsAsTenant.current_tenant,
+        action: action,
+        auditable_type: record.class.name,
+        auditable_id: record.id,
+        changed_data: extra_data[:changed_attributes] ? saved_changes.slice(*extra_data[:changed_attributes]) : {},
+        ip_address: Current.ip_address,
+        user_agent: Current.user_agent
+      )
+    rescue => e
+      Rails.logger.error "[AUDIT] Failed to create audit log: #{e.message}"
     end
-  end
-
-  def current_ip_address
-    Thread.current[:current_ip_address] || 'unknown'
   end
 
   class_methods do

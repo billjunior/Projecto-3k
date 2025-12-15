@@ -20,8 +20,8 @@ class DailyRevenuePolicy < ApplicationPolicy
   end
 
   def update?
-    # Only super_admin can update daily revenues (audit purposes)
-    user.super_admin?
+    # Cyber tech can update (with audit trail), only super_admin can delete
+    user.super_admin? || user.cyber_tech?
   end
 
   def destroy?

@@ -1,5 +1,6 @@
 class DailyRevenue < ApplicationRecord
   include TenantScoped
+  include Auditable
 
   # Enums
   enum payment_type: { manual: 0, bank_transfer: 1 }
