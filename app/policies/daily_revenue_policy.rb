@@ -20,13 +20,13 @@ class DailyRevenuePolicy < ApplicationPolicy
   end
 
   def update?
-    # Cyber tech can update (with audit trail), only super_admin can delete
+    # Cyber tech can update (with audit trail)
     user.super_admin? || user.cyber_tech?
   end
 
   def destroy?
-    # Only super_admin can delete daily revenues (audit purposes)
-    user.super_admin?
+    # Cyber tech can delete (with audit trail)
+    user.super_admin? || user.cyber_tech?
   end
 
   def manage?
