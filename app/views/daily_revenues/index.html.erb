@@ -9,11 +9,13 @@
         </ol>
       </nav>
     </div>
-    <div class="col-auto">
-      <%= link_to new_daily_revenue_path, class: 'btn btn-primary' do %>
-        <i class="bi bi-plus-circle"></i> Nova Receita
-      <% end %>
-    </div>
+    <% if policy(DailyRevenue).create? %>
+      <div class="col-auto">
+        <%= link_to new_daily_revenue_path, class: 'btn btn-primary' do %>
+          <i class="bi bi-plus-circle"></i> Nova Receita
+        <% end %>
+      </div>
+    <% end %>
   </div>
 
   <!-- Filtro de Mês/Ano -->
@@ -151,12 +153,16 @@
                   </td>
                   <td class="text-center">
                     <div class="btn-group btn-group-sm">
-                      <%= link_to edit_daily_revenue_path(revenue), class: 'btn btn-outline-primary', title: 'Editar' do %>
-                        <i class="bi bi-pencil"></i>
+                      <% if policy(revenue).update? %>
+                        <%= link_to edit_daily_revenue_path(revenue), class: 'btn btn-outline-primary', title: 'Editar' do %>
+                          <i class="bi bi-pencil"></i>
+                        <% end %>
                       <% end %>
-                      <%= button_to daily_revenue_path(revenue), method: :delete, class: 'btn btn-outline-danger',
-                          title: 'Eliminar', data: { confirm: 'Tem certeza?' } do %>
-                        <i class="bi bi-trash"></i>
+                      <% if policy(revenue).destroy? %>
+                        <%= button_to daily_revenue_path(revenue), method: :delete, class: 'btn btn-outline-danger',
+                            title: 'Eliminar', data: { confirm: 'Tem certeza?' } do %>
+                          <i class="bi bi-trash"></i>
+                        <% end %>
                       <% end %>
                     </div>
                   </td>
