@@ -31,11 +31,33 @@
       .dropdown-item:hover {
         background-color: rgba(255, 102, 0, 0.1);
       }
+
+      /* Background watermark */
+      .background-watermark {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 50%;
+        max-width: 600px;
+        opacity: 0.04;
+        z-index: -1;
+        pointer-events: none;
+      }
+      .background-watermark img {
+        width: 100%;
+        height: auto;
+      }
     </style>
   </head>
 
-  <body>
+  <body style="background-color: #e3f2fd;">
     <% if user_signed_in? %>
+      <!-- Background Watermark -->
+      <div class="background-watermark">
+        <%= tenant_logo_tag %>
+      </div>
+
       <!-- Navigation Bar -->
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
