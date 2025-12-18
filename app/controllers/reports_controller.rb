@@ -38,14 +38,16 @@ class ReportsController < ApplicationController
     @start_date = params[:start_date] ? Date.parse(params[:start_date]) : Date.today.beginning_of_month
     @end_date = params[:end_date] ? Date.parse(params[:end_date]) : Date.today.end_of_month
 
-    @invoices = Invoice.where(invoice_date: @start_date..@end_date)
-                       .includes(:customer, :payments)
-                       .order(invoice_date: :desc)
+    # Base query for filtering
+    invoices_scope = Invoice.where(invoice_date: @start_date..@end_date)
 
-    @total_invoiced = @invoices.sum(:total_value)
-    @total_paid = @invoices.joins(:payments).sum('payments.amount')
+    @invoices = invoices_scope.includes(:customer, :payments)
+                              .order(invoice_date: :desc)
+
+    @total_invoiced = invoices_scope.sum(:total_value)
+    @total_paid = invoices_scope.joins(:payments).sum('payments.amount')
     @pending_amount = @total_invoiced - @total_paid
-    @invoices_by_status = @invoices.group(:status).count
+    @invoices_by_status = invoices_scope.group(:status).count
   end
 
   def customers
