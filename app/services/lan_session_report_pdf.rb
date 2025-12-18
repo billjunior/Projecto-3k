@@ -6,18 +6,19 @@ class LanSessionReportPdf
     @tenant = tenant
     @month = month
     @year = year
+    @company_settings = tenant.company_setting
     @sessions = fetch_sessions
   end
 
   def generate
     Prawn::Document.new(page_size: 'A4', margin: 40) do |pdf|
-      # Header
-      pdf.font_size 20
-      pdf.text @tenant.name, align: :center, style: :bold
-      pdf.move_down 5
+      # Company Header with Logo
+      add_company_header(pdf)
+
+      pdf.move_down 20
 
       pdf.font_size 16
-      pdf.text "Relatório Mensal de Sessões LAN", align: :center
+      pdf.text "Relatório Mensal de Sessões LAN", align: :center, style: :bold
       pdf.move_down 5
 
       pdf.font_size 12
@@ -85,6 +86,48 @@ class LanSessionReportPdf
   end
 
   private
+
+  def add_company_header(pdf)
+    # Logo (if exists)
+    if @company_settings&.logo&.attached?
+      begin
+        logo_path = ActiveStorage::Blob.service.path_for(@company_settings.logo.key)
+        if File.exist?(logo_path)
+          pdf.image logo_path, width: 120, height: 60, position: :center
+          pdf.move_down 10
+        end
+      rescue => e
+        Rails.logger.error "Failed to add logo to PDF: #{e.message}"
+      end
+    end
+
+    # Company Name
+    pdf.font_size 18
+    pdf.text (@company_settings&.company_name || @tenant.name), align: :center, style: :bold
+    pdf.move_down 5
+
+    # Company Tagline
+    if @company_settings&.company_tagline.present?
+      pdf.font_size 10
+      pdf.text @company_settings.company_tagline, align: :center, style: :italic
+      pdf.move_down 5
+    end
+
+    # Contact Information
+    contact_info = []
+    contact_info << @company_settings.address if @company_settings&.address.present?
+    contact_info << "Tel: #{@company_settings.phone}" if @company_settings&.phone.present?
+    contact_info << "Email: #{@company_settings.email}" if @company_settings&.email.present?
+
+    if contact_info.any?
+      pdf.font_size 9
+      pdf.text contact_info.join(" | "), align: :center
+    end
+
+    # Divider Line
+    pdf.move_down 10
+    pdf.stroke_horizontal_rule
+  end
 
   def fetch_sessions
     LanSession.where(

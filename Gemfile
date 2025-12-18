@@ -51,6 +51,13 @@ gem "acts_as_tenant"
 gem "prawn"
 gem "prawn-table"
 
+# Excel generation
+gem "caxlsx"
+gem "caxlsx_rails"
+
+# Word (DOCX) generation
+gem "sablon"
+
 # Bootstrap for UI
 gem "bootstrap", "~> 5.3"
 gem "sassc-rails"
