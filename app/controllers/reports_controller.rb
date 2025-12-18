@@ -81,14 +81,17 @@ class ReportsController < ApplicationController
 
   def opportunities
     # Relatório de oportunidades (pipeline CRM)
-    @opportunities = Opportunity.includes(:customer, :assigned_to_user)
-                                .order(created_at: :desc)
+    # Base query for filtering
+    opportunities_scope = Opportunity.all
 
-    @opportunities_by_stage = @opportunities.group(:stage).count
-    @total_value = @opportunities.sum(:value)
+    @opportunities = opportunities_scope.includes(:customer, :assigned_to_user)
+                                        .order(created_at: :desc)
+
+    @opportunities_by_stage = opportunities_scope.group(:stage).count
+    @total_value = opportunities_scope.sum(:value)
     @weighted_value = @opportunities.sum { |o| (o.value || 0) * (o.probability || 0) / 100.0 }
-    @conversion_rate = @opportunities.won.count.to_f / @opportunities.count * 100 if @opportunities.any?
-    @avg_deal_size = @opportunities.won.average(:value)
+    @conversion_rate = opportunities_scope.won.count.to_f / opportunities_scope.count * 100 if opportunities_scope.any?
+    @avg_deal_size = opportunities_scope.won.average(:value)
   end
 
   def sales
