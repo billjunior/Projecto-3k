@@ -20,7 +20,7 @@ module BrandingHelper
 
     company_setting = current_user.tenant.company_setting
     if company_setting&.logo&.attached?
-      favicon_link_tag company_setting.logo
+      favicon_link_tag url_for(company_setting.logo)
     end
   end
 
