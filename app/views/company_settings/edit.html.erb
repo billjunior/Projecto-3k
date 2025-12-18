@@ -18,7 +18,7 @@
           <h5 class="mb-0">Informações da Empresa</h5>
         </div>
         <div class="card-body">
-          <%= form_with(model: @company_settings, url: company_settings_path, local: true, class: 'needs-validation', novalidate: true) do |form| %>
+          <%= form_with(model: @company_settings, url: company_settings_path, local: true, multipart: true, class: 'needs-validation', novalidate: true) do |form| %>
             <% if @company_settings.errors.any? %>
               <div class="alert alert-danger">
                 <h4 class="alert-heading">
