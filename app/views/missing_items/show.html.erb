@@ -1,0 +1,150 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-exclamation-triangle"></i> Detalhes do Item em Falta</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Dashboard', dashboard_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Itens em Falta', missing_items_path %></li>
+          <li class="breadcrumb-item active" aria-current="page">Detalhes</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0"><%= @missing_item.item_name %></h5>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <tbody>
+              <tr>
+                <th style="width: 30%;">Item:</th>
+                <td><strong><%= @missing_item.item_name %></strong></td>
+              </tr>
+              <tr>
+                <th>Urgência:</th>
+                <td>
+                  <span class="badge bg-<%= @missing_item.urgency_badge_class %>">
+                    <%= @missing_item.urgency_text %>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <th>Status:</th>
+                <td>
+                  <span class="badge bg-<%= @missing_item.status_badge_class %>">
+                    <%= @missing_item.status_text %>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <th>Fonte:</th>
+                <td>
+                  <span class="badge bg-<%= @missing_item.source == 'automatic' ? 'info' : 'secondary' %>">
+                    <%= @missing_item.source_text %>
+                  </span>
+                </td>
+              </tr>
+              <% if @missing_item.description.present? %>
+                <tr>
+                  <th>Descrição:</th>
+                  <td><%= simple_format(@missing_item.description) %></td>
+                </tr>
+              <% end %>
+              <% if @missing_item.inventory_item.present? %>
+                <tr>
+                  <th>Item de Inventário:</th>
+                  <td>
+                    <%= link_to @missing_item.inventory_item.product_name, inventory_item_path(@missing_item.inventory_item) %>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Stock Atual:</th>
+                  <td><%= @missing_item.inventory_item.net_quantity %></td>
+                </tr>
+                <tr>
+                  <th>Stock Mínimo:</th>
+                  <td><%= @missing_item.inventory_item.minimum_stock %></td>
+                </tr>
+                <% if @missing_item.inventory_item.supplier_phone.present? %>
+                  <tr>
+                    <th>Fornecedor:</th>
+                    <td><%= @missing_item.inventory_item.supplier_phone %></td>
+                  </tr>
+                <% end %>
+              <% end %>
+              <tr>
+                <th>Data Criação:</th>
+                <td><%= l(@missing_item.created_at, format: :long) %></td>
+              </tr>
+              <% if @missing_item.created_by_user.present? %>
+                <tr>
+                  <th>Criado por:</th>
+                  <td><%= @missing_item.created_by_user.name %></td>
+                </tr>
+              <% end %>
+              <% if @missing_item.last_notified_at.present? %>
+                <tr>
+                  <th>Última Notificação:</th>
+                  <td><%= l(@missing_item.last_notified_at, format: :long) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card border-warning">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0"><i class="bi bi-gear"></i> Ações</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <% if @missing_item.pending? %>
+              <%= button_to mark_as_ordered_missing_item_path(@missing_item), method: :patch, class: 'btn btn-info' do %>
+                <i class="bi bi-cart-check"></i> Marcar como Pedido
+              <% end %>
+            <% end %>
+
+            <% if @missing_item.pending? || @missing_item.ordered? %>
+              <%= button_to mark_as_resolved_missing_item_path(@missing_item), method: :patch, class: 'btn btn-success' do %>
+                <i class="bi bi-check-circle"></i> Marcar como Resolvido
+              <% end %>
+            <% end %>
+
+            <%= link_to edit_missing_item_path(@missing_item), class: 'btn btn-warning' do %>
+              <i class="bi bi-pencil"></i> Editar
+            <% end %>
+
+            <%= link_to missing_items_path, class: 'btn btn-secondary' do %>
+              <i class="bi bi-arrow-left"></i> Voltar à Lista
+            <% end %>
+
+            <% if current_user.super_admin? %>
+              <%= button_to missing_item_path(@missing_item), method: :delete, data: { confirm: 'Tem certeza que deseja remover este item?' }, class: 'btn btn-danger' do %>
+                <i class="bi bi-trash"></i> Remover
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <% if @missing_item.urgency_level.in?(['critica', 'alta']) %>
+        <div class="card border-danger mt-3">
+          <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Atenção</h5>
+          </div>
+          <div class="card-body">
+            <p class="mb-0">Este item possui urgência <strong><%= @missing_item.urgency_text.downcase %></strong> e requer atenção imediata.</p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

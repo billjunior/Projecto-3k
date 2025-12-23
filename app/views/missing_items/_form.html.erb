@@ -1,0 +1,75 @@
+<%= form_with(model: missing_item, local: true, class: 'needs-validation', novalidate: true) do |form| %>
+  <% if missing_item.errors.any? %>
+    <div class="alert alert-danger">
+      <h4 class="alert-heading">
+        <%= pluralize(missing_item.errors.count, "erro impediu", "erros impediram") %> que o item fosse salvo:
+      </h4>
+      <ul class="mb-0">
+        <% missing_item.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-8 mb-3">
+      <%= form.label :item_name, 'Nome do Item *', class: 'form-label' %>
+      <%= form.text_field :item_name, class: 'form-control', required: true, placeholder: 'Ex: Papel A4 Branco' %>
+      <div class="form-text">Nome do item que está em falta</div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <%= form.label :urgency_level, 'Nível de Urgência *', class: 'form-label' %>
+      <%= form.select :urgency_level,
+          options_for_select([
+            ['Baixa', 'baixa'],
+            ['Média', 'media'],
+            ['Alta', 'alta'],
+            ['Crítica', 'critica']
+          ], missing_item.urgency_level),
+          { include_blank: 'Selecione' },
+          { class: 'form-select', required: true } %>
+      <div class="form-text">Urgência para obter este item</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12 mb-3">
+      <%= form.label :description, 'Descrição', class: 'form-label' %>
+      <%= form.text_area :description, class: 'form-control', rows: 4, placeholder: 'Detalhes sobre o item em falta, quantidade necessária, etc.' %>
+      <div class="form-text">Informações adicionais sobre o item</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <%= form.label :inventory_item_id, 'Item de Inventário (Opcional)', class: 'form-label' %>
+      <%= form.select :inventory_item_id,
+          options_from_collection_for_select(@inventory_items, :id, :product_name, missing_item.inventory_item_id),
+          { include_blank: 'Nenhum / Item novo' },
+          { class: 'form-select' } %>
+      <div class="form-text">Associar a um item do inventário existente</div>
+    </div>
+
+    <% unless missing_item.new_record? %>
+      <div class="col-md-6 mb-3">
+        <%= form.label :status, 'Status', class: 'form-label' %>
+        <%= form.select :status,
+            options_for_select([
+              ['Pendente', 'pending'],
+              ['Pedido', 'ordered'],
+              ['Resolvido', 'resolved']
+            ], missing_item.status),
+            {},
+            { class: 'form-select' } %>
+        <div class="form-text">Status atual do item</div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="d-flex justify-content-between mt-4">
+    <%= link_to 'Cancelar', missing_items_path, class: 'btn btn-secondary' %>
+    <%= form.submit missing_item.new_record? ? 'Registar Item' : 'Atualizar Item', class: 'btn btn-primary' %>
+  </div>
+<% end %>

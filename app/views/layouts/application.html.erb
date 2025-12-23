@@ -591,6 +591,7 @@
                 <li><%= link_to 'Receitas Diárias', daily_revenues_path, class: controller_name == 'daily_revenues' ? 'active' : '' %></li>
                 <li><%= link_to 'Cursos de Formação', training_courses_path, class: controller_name == 'training_courses' ? 'active' : '' %></li>
                 <li><%= link_to 'Inventário', inventory_items_path, class: ['inventory_items', 'inventory_movements'].include?(controller_name) ? 'active' : '' %></li>
+                <li><%= link_to 'Itens em Falta', missing_items_path, class: controller_name == 'missing_items' ? 'active' : '' %></li>
               </ul>
             </li>
           <% end %>

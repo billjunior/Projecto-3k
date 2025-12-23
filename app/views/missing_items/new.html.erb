@@ -1,0 +1,41 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-plus-circle"></i> Registar Item em Falta</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Dashboard', dashboard_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Itens em Falta', missing_items_path %></li>
+          <li class="breadcrumb-item active" aria-current="page">Novo</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Informações do Item</h5>
+        </div>
+        <div class="card-body">
+          <%= render 'form', missing_item: @missing_item %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card border-info">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0"><i class="bi bi-info-circle"></i> Ajuda</h5>
+        </div>
+        <div class="card-body">
+          <p><strong>Nome do Item:</strong> Identifique claramente o item necessário.</p>
+          <p><strong>Urgência:</strong> Defina a prioridade de obtenção do item.</p>
+          <p><strong>Descrição:</strong> Adicione detalhes como quantidade necessária, especificações, etc.</p>
+          <p class="mb-0"><strong>Item de Inventário:</strong> Opcionalmente, associe a um item do inventário existente.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

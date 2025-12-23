@@ -71,6 +71,14 @@ Rails.application.routes.draw do
     resources :inventory_movements, only: [:create, :destroy]
   end
 
+  # Missing Items
+  resources :missing_items do
+    member do
+      patch :mark_as_ordered
+      patch :mark_as_resolved
+    end
+  end
+
   resources :invoices do
     collection do
       get :pricing_calculator

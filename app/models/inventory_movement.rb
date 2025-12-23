@@ -16,6 +16,7 @@ class InventoryMovement < ApplicationRecord
 
   # Callbacks
   after_create :update_inventory_quantities
+  after_create :check_low_stock_and_create_missing_item
   after_destroy :revert_inventory_quantities
 
   # Scopes
@@ -44,6 +45,43 @@ class InventoryMovement < ApplicationRecord
       inventory_item.decrement!(:net_quantity, quantity)
     elsif exit?
       inventory_item.increment!(:net_quantity, quantity)
+    end
+  end
+
+  def check_low_stock_and_create_missing_item
+    return unless exit? # Only check on exits
+
+    if inventory_item.low_stock? && !recent_missing_item_exists?
+      MissingItem.create!(
+        tenant: inventory_item.tenant,
+        inventory_item: inventory_item,
+        item_name: inventory_item.product_name,
+        description: "Stock baixo detectado automaticamente. Stock atual: #{inventory_item.net_quantity}, Mínimo: #{inventory_item.minimum_stock}",
+        source: :automatic,
+        urgency_level: determine_urgency_level,
+        status: :pending
+      )
+    end
+  end
+
+  def recent_missing_item_exists?
+    MissingItem.where(
+      inventory_item: inventory_item,
+      created_at: 24.hours.ago..Time.current
+    ).exists?
+  end
+
+  def determine_urgency_level
+    return :critica if inventory_item.net_quantity.zero?
+
+    percentage = (inventory_item.net_quantity.to_f / inventory_item.minimum_stock) * 100
+
+    if percentage <= 25
+      :alta # Less than 25% of minimum
+    elsif percentage <= 50
+      :media # Between 25-50% of minimum
+    else
+      :baixa # Between 50-100% of minimum
     end
   end
 end

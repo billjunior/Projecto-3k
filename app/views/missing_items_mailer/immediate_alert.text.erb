@@ -1,0 +1,32 @@
+ALERTA: Item em Falta
+=======================
+
+Um item foi identificado como em falta no sistema de inventário.
+
+DETALHES DO ITEM
+----------------
+
+Item: <%= @missing_item.item_name %>
+Urgência: <%= @missing_item.urgency_text %>
+Fonte: <%= @missing_item.source_text %>
+<% if @missing_item.description.present? %>
+Descrição: <%= @missing_item.description %>
+<% end %>
+<% if @missing_item.inventory_item.present? %>
+Stock Atual: <%= @missing_item.inventory_item.net_quantity %>
+Stock Mínimo: <%= @missing_item.inventory_item.minimum_stock %>
+<% if @missing_item.inventory_item.supplier_phone.present? %>
+Fornecedor: <%= @missing_item.inventory_item.supplier_phone %>
+<% end %>
+<% end %>
+Data: <%= I18n.l(@missing_item.created_at, format: :long) %>
+
+<% if @missing_item.urgency_level.in?(['critica', 'alta']) %>
+⚠️  AÇÃO NECESSÁRIA
+Este item requer atenção imediata devido ao seu nível de urgência.
+<% end %>
+
+Para mais detalhes, acesse o sistema de gestão de inventário.
+
+---
+Este é um email automático do sistema <%= @company_name %>.

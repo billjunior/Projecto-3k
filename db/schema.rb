@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_22_214113) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_23_220238) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -74,6 +74,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_22_214113) do
     t.jsonb "emails", default: []
     t.jsonb "ibans", default: []
     t.jsonb "bank_accounts", default: []
+    t.string "director_general_email"
+    t.string "financial_director_email"
     t.index ["tenant_id"], name: "index_company_settings_on_tenant_id"
   end
 
@@ -321,6 +323,26 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_22_214113) do
     t.index ["tenant_id"], name: "index_leads_on_tenant_id"
   end
 
+  create_table "missing_items", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "inventory_item_id"
+    t.string "item_name", null: false
+    t.text "description"
+    t.integer "source", default: 0
+    t.integer "urgency_level", default: 1
+    t.integer "status", default: 0
+    t.datetime "last_notified_at"
+    t.boolean "included_in_weekly_report", default: false
+    t.bigint "created_by_user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_user_id"], name: "index_missing_items_on_created_by_user_id"
+    t.index ["inventory_item_id"], name: "index_missing_items_on_inventory_item_id"
+    t.index ["tenant_id", "status"], name: "index_missing_items_on_tenant_id_and_status"
+    t.index ["tenant_id", "urgency_level"], name: "index_missing_items_on_tenant_id_and_urgency_level"
+    t.index ["tenant_id"], name: "index_missing_items_on_tenant_id"
+  end
+
   create_table "opportunities", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.bigint "customer_id", null: false
@@ -532,6 +554,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_22_214113) do
   add_foreign_key "leads", "customers", column: "converted_to_customer_id"
   add_foreign_key "leads", "tenants"
   add_foreign_key "leads", "users", column: "assigned_to_user_id"
+  add_foreign_key "missing_items", "inventory_items"
+  add_foreign_key "missing_items", "tenants"
+  add_foreign_key "missing_items", "users", column: "created_by_user_id"
   add_foreign_key "opportunities", "customers"
   add_foreign_key "opportunities", "leads"
   add_foreign_key "opportunities", "tenants"

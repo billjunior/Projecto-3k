@@ -1,0 +1,123 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-exclamation-triangle"></i> Itens em Falta</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Dashboard', dashboard_path %></li>
+          <li class="breadcrumb-item active" aria-current="page">Itens em Falta</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <%= link_to new_missing_item_path, class: 'btn btn-primary' do %>
+        <i class="bi bi-plus-circle"></i> Registar Item em Falta
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <div class="btn-group" role="group">
+        <%= link_to 'Todos', missing_items_path, class: "btn btn-sm #{params[:filter].nil? ? 'btn-primary' : 'btn-outline-primary'}" %>
+        <%= link_to 'Pendentes', missing_items_path(filter: 'pending'), class: "btn btn-sm #{params[:filter] == 'pending' ? 'btn-warning' : 'btn-outline-warning'}" %>
+        <%= link_to 'Pedidos', missing_items_path(filter: 'ordered'), class: "btn btn-sm #{params[:filter] == 'ordered' ? 'btn-info' : 'btn-outline-info'}" %>
+        <%= link_to 'Resolvidos', missing_items_path(filter: 'resolved'), class: "btn btn-sm #{params[:filter] == 'resolved' ? 'btn-success' : 'btn-outline-success'}" %>
+      </div>
+    </div>
+    <div class="col-md-6 text-end">
+      <div class="btn-group" role="group">
+        <%= link_to 'Todas', missing_items_path(filter: params[:filter]), class: "btn btn-sm #{params[:urgency].nil? ? 'btn-secondary' : 'btn-outline-secondary'}" %>
+        <%= link_to 'Crítica', missing_items_path(filter: params[:filter], urgency: 'critica'), class: "btn btn-sm #{params[:urgency] == 'critica' ? 'btn-danger' : 'btn-outline-danger'}" %>
+        <%= link_to 'Alta', missing_items_path(filter: params[:filter], urgency: 'alta'), class: "btn btn-sm #{params[:urgency] == 'alta' ? 'btn-warning' : 'btn-outline-warning'}" %>
+        <%= link_to 'Média', missing_items_path(filter: params[:filter], urgency: 'media'), class: "btn btn-sm #{params[:urgency] == 'media' ? 'btn-info' : 'btn-outline-info'}" %>
+        <%= link_to 'Baixa', missing_items_path(filter: params[:filter], urgency: 'baixa'), class: "btn btn-sm #{params[:urgency] == 'baixa' ? 'btn-secondary' : 'btn-outline-secondary'}" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="bi bi-list-ul"></i> Lista de Itens em Falta</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Descrição</th>
+              <th>Fonte</th>
+              <th>Urgência</th>
+              <th>Status</th>
+              <th>Data Criação</th>
+              <th class="text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @missing_items.each do |item| %>
+              <tr class="<%= 'table-danger' if item.urgency_level == 'critica' %><%= 'table-warning' if item.urgency_level == 'alta' %>">
+                <td>
+                  <strong><%= item.item_name %></strong>
+                  <% if item.inventory_item.present? %>
+                    <br><small class="text-muted">Stock: <%= item.inventory_item.net_quantity %> / Min: <%= item.inventory_item.minimum_stock %></small>
+                  <% end %>
+                </td>
+                <td class="text-muted">
+                  <%= truncate(item.description, length: 100) %>
+                </td>
+                <td>
+                  <span class="badge bg-<%= item.source == 'automatic' ? 'info' : 'secondary' %>">
+                    <%= item.source_text %>
+                  </span>
+                </td>
+                <td>
+                  <span class="badge bg-<%= item.urgency_badge_class %>">
+                    <%= item.urgency_text %>
+                  </span>
+                </td>
+                <td>
+                  <span class="badge bg-<%= item.status_badge_class %>">
+                    <%= item.status_text %>
+                  </span>
+                </td>
+                <td><%= l(item.created_at, format: :short) %></td>
+                <td class="text-center">
+                  <div class="btn-group btn-group-sm">
+                    <%= link_to missing_item_path(item), class: 'btn btn-outline-primary', title: 'Ver' do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                    <%= link_to edit_missing_item_path(item), class: 'btn btn-outline-warning', title: 'Editar' do %>
+                      <i class="bi bi-pencil"></i>
+                    <% end %>
+                    <% if current_user.super_admin? %>
+                      <%= button_to missing_item_path(item), method: :delete, data: { confirm: 'Tem certeza?' }, class: 'btn btn-outline-danger', title: 'Remover' do %>
+                        <i class="bi bi-trash"></i>
+                      <% end %>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+
+            <% if @missing_items.empty? %>
+              <tr>
+                <td colspan="7" class="text-center text-muted py-5">
+                  <i class="bi bi-inbox" style="font-size: 48px;"></i>
+                  <p class="mt-3">Nenhum item em falta encontrado.</p>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="mt-3">
+    <%= paginate @missing_items %>
+  </div>
+</div>

@@ -1,0 +1,34 @@
+RELATÓRIO SEMANAL DE ITENS EM FALTA
+====================================
+
+Período: <%= I18n.l(@week_start, format: :short) %> a <%= I18n.l(@week_end, format: :short) %>
+
+RESUMO
+------
+Crítica: <%= @count_critica %>
+Alta: <%= @count_alta %>
+Média: <%= @count_media %>
+Baixa: <%= @count_baixa %>
+-------------------------
+TOTAL PENDENTE: <%= @total_pending %>
+
+<% if @total_pending > 0 %>
+ITENS PENDENTES
+---------------
+
+<% @items_by_urgency.each do |urgency, items| %>
+<% next if items.empty? %>
+<%= { critica: 'CRÍTICA', alta: 'ALTA', media: 'MÉDIA', baixa: 'BAIXA' }[urgency] %> (<%= items.count %>):
+<% items.each do |item| %>
+  - <%= item.item_name %> | <%= item.source_text %> | <%= I18n.l(item.created_at, format: :short) %>
+<% end %>
+
+<% end %>
+<% else %>
+✓ Excelente! Não há itens em falta pendentes no momento.
+<% end %>
+
+Para mais detalhes e para gerir os itens em falta, acesse o sistema de gestão de inventário.
+
+---
+Este é um relatório automático semanal do sistema <%= @company_name %>.

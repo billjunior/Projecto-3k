@@ -1,0 +1,61 @@
+<h1>ALERTA: Item em Falta</h1>
+
+<p>Um item foi identificado como em falta no sistema de inventário.</p>
+
+<div style="background-color: #f8f9fa; border-left: 4px solid <%= @missing_item.urgency_level == 'critica' ? '#dc3545' : @missing_item.urgency_level == 'alta' ? '#fd7e14' : @missing_item.urgency_level == 'media' ? '#17a2b8' : '#6c757d' %>; padding: 15px; margin: 20px 0;">
+  <h2 style="margin-top: 0;">
+    <%= @missing_item.item_name %>
+    <span style="display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; background-color: <%= @missing_item.urgency_level == 'critica' ? '#dc3545' : @missing_item.urgency_level == 'alta' ? '#fd7e14' : @missing_item.urgency_level == 'media' ? '#17a2b8' : '#6c757d' %>; color: white;">
+      <%= @missing_item.urgency_text %>
+    </span>
+  </h2>
+
+  <table style="width: 100%; margin-top: 15px;">
+    <tr>
+      <td style="padding: 5px 0; font-weight: bold;">Fonte:</td>
+      <td style="padding: 5px 0;"><%= @missing_item.source_text %></td>
+    </tr>
+    <% if @missing_item.description.present? %>
+      <tr>
+        <td style="padding: 5px 0; font-weight: bold;">Descrição:</td>
+        <td style="padding: 5px 0;"><%= @missing_item.description %></td>
+      </tr>
+    <% end %>
+    <% if @missing_item.inventory_item.present? %>
+      <tr>
+        <td style="padding: 5px 0; font-weight: bold;">Stock Atual:</td>
+        <td style="padding: 5px 0;"><%= @missing_item.inventory_item.net_quantity %></td>
+      </tr>
+      <tr>
+        <td style="padding: 5px 0; font-weight: bold;">Stock Mínimo:</td>
+        <td style="padding: 5px 0;"><%= @missing_item.inventory_item.minimum_stock %></td>
+      </tr>
+      <% if @missing_item.inventory_item.supplier_phone.present? %>
+        <tr>
+          <td style="padding: 5px 0; font-weight: bold;">Fornecedor:</td>
+          <td style="padding: 5px 0;"><%= @missing_item.inventory_item.supplier_phone %></td>
+        </tr>
+      <% end %>
+    <% end %>
+    <tr>
+      <td style="padding: 5px 0; font-weight: bold;">Data:</td>
+      <td style="padding: 5px 0;"><%= I18n.l(@missing_item.created_at, format: :long) %></td>
+    </tr>
+  </table>
+</div>
+
+<% if @missing_item.urgency_level.in?(['critica', 'alta']) %>
+  <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+    <p style="margin: 0; font-weight: bold; color: #856404;">
+      ⚠️ <strong>Ação Necessária:</strong> Este item requer atenção imediata devido ao seu nível de urgência.
+    </p>
+  </div>
+<% end %>
+
+<p style="margin-top: 30px;">
+  Para mais detalhes, acesse o sistema de gestão de inventário.
+</p>
+
+<p style="margin-top: 20px; font-size: 12px; color: #6c757d;">
+  <em>Este é um email automático do sistema <%= @company_name %>.</em>
+</p>
