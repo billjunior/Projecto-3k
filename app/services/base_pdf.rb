@@ -54,8 +54,7 @@ class BasePdf
 
   # Standard footer with generation timestamp
   def add_standard_footer(pdf)
-    pdf.move_to_bottom
-    pdf.move_up 20
+    pdf.move_down 30
     pdf.font_size 8
     pdf.text "Documento gerado em #{Time.current.strftime('%d/%m/%Y às %H:%M')}",
       align: :center, color: '999999'

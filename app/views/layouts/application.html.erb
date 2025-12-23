@@ -13,188 +13,649 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" data-turbo-track="reload"></script>
     <style>
-      .nav-link.active {
-        background-color: #ff6600 !important;
-        color: #fff !important;
-        border-bottom: 3px solid #ff4400;
-        font-weight: bold;
-        box-shadow: 0 2px 4px rgba(255, 102, 0, 0.3);
-      }
-      .nav-link:hover {
-        background-color: rgba(255, 102, 0, 0.1);
-      }
-      .dropdown-item.active {
-        background-color: #ff6600 !important;
-        color: #fff !important;
-        font-weight: bold;
-      }
-      .dropdown-item:hover {
-        background-color: rgba(255, 102, 0, 0.1);
+      /* Color Scheme */
+      :root {
+        --sidebar-bg: #000000;
+        --sidebar-hover: #2a2a2a;
+        --sidebar-active: #ff6b35;
+        --main-bg: #0f1829;
+        --content-bg: #1a2332;
+        --border-light: #2d3748;
+        --divider-subtle: #374151;
+        --text-dark: #e2e8f0;
+        --text-light: #a0aec0;
+        --accent-orange: #ff6b35;
+        --accent-teal: #4ecdc4;
+        --accent-green: #95e1d3;
       }
 
-      /* Background watermark */
-      .background-watermark {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 50%;
-        max-width: 600px;
-        opacity: 0.04;
-        z-index: -1;
-        pointer-events: none;
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background-color: var(--main-bg);
       }
-      .background-watermark img {
-        width: 100%;
-        height: auto;
+
+      /* Dark blue background for logged-in users */
+      body.app-authenticated {
+        background: linear-gradient(135deg, #0a1628 0%, #0f1f3a 25%, #1a2f4d 50%, #0d1b2a 75%, #0a1628 100%);
+        background-size: 400% 400%;
+        animation: gradientShift 20s ease infinite;
+        position: relative;
+      }
+
+      body.app-authenticated::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background:
+          radial-gradient(circle at 20% 50%, rgba(66, 153, 225, 0.05) 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, rgba(49, 130, 206, 0.03) 0%, transparent 50%),
+          radial-gradient(circle at 40% 20%, rgba(102, 126, 234, 0.04) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      @keyframes gradientShift {
+        0%, 100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+
+      /* Sidebar */
+      .app-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 240px;
+        background-color: var(--sidebar-bg);
+        color: white;
+        overflow-y: auto;
+        z-index: 1000;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      }
+
+      .app-sidebar .logo {
+        padding: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        text-decoration: none;
+        display: block;
+      }
+
+      .app-sidebar .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0;
+      }
+
+      .app-sidebar .sidebar-menu li {
+        margin: 5px 0;
+      }
+
+      .app-sidebar .sidebar-menu a {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        color: rgba(255,255,255,0.8);
+        text-decoration: none;
+        transition: all 0.3s;
+        font-size: 14px;
+      }
+
+      .app-sidebar .sidebar-menu a i {
+        margin-right: 12px;
+        width: 20px;
+        text-align: center;
+      }
+
+      .app-sidebar .sidebar-menu a:hover {
+        background-color: var(--sidebar-hover);
+        color: white;
+      }
+
+      .app-sidebar .sidebar-menu a.active {
+        background-color: var(--sidebar-active);
+        color: white;
+        border-left: 4px solid #ff9966;
+      }
+
+      .app-sidebar .sidebar-submenu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        background-color: rgba(0,0,0,0.1);
+      }
+
+      .app-sidebar .sidebar-submenu a {
+        padding-left: 52px;
+        font-size: 13px;
+      }
+
+      /* Main Content */
+      .app-main {
+        margin-left: 240px;
+        min-height: 100vh;
+      }
+
+      .app-topbar {
+        background-color: var(--content-bg);
+        padding: 15px 30px;
+        border-bottom: 1px solid var(--border-light);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .app-content {
+        padding: 30px;
+      }
+
+      /* Dropdown toggle */
+      .sidebar-menu .has-submenu > a::after {
+        content: '▾';
+        margin-left: auto;
+        transition: transform 0.3s;
+      }
+
+      .sidebar-menu .has-submenu.open > a::after {
+        transform: rotate(180deg);
+      }
+
+      .sidebar-submenu {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+
+      .sidebar-menu .has-submenu.open .sidebar-submenu {
+        max-height: 500px;
+      }
+
+      /* Cards */
+      .card {
+        background: var(--content-bg);
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--border-light);
+        color: var(--text-dark);
+      }
+
+      .card-header {
+        background-color: var(--content-bg);
+        border-bottom: 1px solid var(--border-light);
+        color: var(--text-dark);
+      }
+
+      .card-header h5, .card-header h6 {
+        color: var(--text-dark);
+      }
+
+      .card-footer {
+        background-color: var(--content-bg);
+        border-top: 1px solid var(--border-light);
+        color: var(--text-dark);
+      }
+
+      .card-body {
+        color: var(--text-dark);
+      }
+
+      .card-title {
+        color: var(--text-dark);
+      }
+
+      .card-text {
+        color: var(--text-light);
+      }
+
+      /* Forms */
+      .form-control, .form-select {
+        border: 1px solid var(--border-light);
+        background-color: #0d1520;
+        color: var(--text-dark);
+      }
+
+      .form-control:focus, .form-select:focus {
+        border-color: var(--accent-orange);
+        box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.15);
+        background-color: #0d1520;
+        color: var(--text-dark);
+      }
+
+      .form-label {
+        color: var(--text-dark);
+      }
+
+      .form-text {
+        color: var(--text-light);
+      }
+
+      .form-check-label {
+        color: var(--text-dark);
+      }
+
+      /* Tables */
+      .table {
+        background-color: transparent;
+        border-color: var(--border-light);
+        color: #ffffff;
+        font-weight: 700;
+      }
+
+      .table thead th {
+        border-bottom: 2px solid var(--border-light);
+        background-color: transparent;
+        color: #ffffff;
+        font-weight: 900;
+      }
+
+      .table tbody td {
+        border-color: var(--border-light);
+        color: #ffffff;
+        font-weight: 700;
+        background-color: transparent;
+      }
+
+      .table tbody tr {
+        background-color: transparent;
+      }
+
+      .table tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.03);
+      }
+
+      .table-bordered {
+        border-color: var(--border-light);
+        background-color: transparent;
+      }
+
+      .table-bordered th,
+      .table-bordered td {
+        border-color: var(--border-light);
+        background-color: transparent;
+      }
+
+      .table-hover tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+
+      /* Make service name and description extra bold */
+      .table td {
+        font-weight: 700 !important;
+        background-color: transparent !important;
+      }
+
+      .table .text-muted {
+        font-weight: 700 !important;
+      }
+
+      /* Ensure card has dark blue background */
+      .card {
+        background: var(--main-bg) !important;
+      }
+
+      .card-header {
+        background-color: transparent !important;
+      }
+
+      .card-body {
+        background-color: transparent !important;
+      }
+
+      /* Dividers */
+      hr {
+        border-color: var(--divider-subtle);
+        opacity: 1;
+      }
+
+      .dropdown-divider {
+        border-color: var(--divider-subtle);
+      }
+
+      /* Badges */
+      .badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      /* Alerts */
+      .alert {
+        border: 1px solid var(--border-light);
+        background-color: rgba(255, 255, 255, 0.05);
+        color: var(--text-dark);
+      }
+
+      .alert-success {
+        background-color: rgba(72, 187, 120, 0.15);
+        border-color: rgba(72, 187, 120, 0.3);
+        color: #9ae6b4;
+      }
+
+      .alert-danger {
+        background-color: rgba(245, 101, 101, 0.15);
+        border-color: rgba(245, 101, 101, 0.3);
+        color: #fc8181;
+      }
+
+      .alert-warning {
+        background-color: rgba(237, 137, 54, 0.15);
+        border-color: rgba(237, 137, 54, 0.3);
+        color: #f6ad55;
+      }
+
+      .alert-info {
+        background-color: rgba(66, 153, 225, 0.15);
+        border-color: rgba(66, 153, 225, 0.3);
+        color: #90cdf4;
+      }
+
+      /* Modals */
+      .modal-content {
+        background-color: var(--content-bg);
+        border: 1px solid var(--border-light);
+        color: var(--text-dark);
+      }
+
+      .modal-header,
+      .modal-footer {
+        border-color: var(--border-light);
+        background-color: var(--content-bg);
+        color: var(--text-dark);
+      }
+
+      .modal-header .btn-close {
+        filter: invert(1);
+      }
+
+      .modal-title {
+        color: var(--text-dark);
+      }
+
+      .modal-body {
+        color: var(--text-dark);
+      }
+
+      /* Breadcrumb */
+      .breadcrumb {
+        background-color: transparent;
+      }
+
+      .breadcrumb-item {
+        color: var(--text-light);
+      }
+
+      .breadcrumb-item.active {
+        color: var(--text-dark);
+      }
+
+      .breadcrumb-item a {
+        color: var(--accent-orange);
+      }
+
+      .breadcrumb-item + .breadcrumb-item::before {
+        color: var(--text-light);
+      }
+
+      /* Headings */
+      h1, h2, h3, h4, h5, h6 {
+        color: var(--text-dark);
+      }
+
+      /* Links */
+      a {
+        color: var(--accent-orange);
+      }
+
+      a:hover {
+        color: #ff8555;
+      }
+
+      /* Text colors */
+      .text-muted {
+        color: #d1d5db !important;
+      }
+
+      .table .text-muted {
+        color: #e5e7eb !important;
+      }
+
+      /* Input groups */
+      .input-group-text {
+        background-color: var(--main-bg);
+        border-color: var(--border-light);
+        color: var(--text-dark);
+      }
+
+      /* List groups */
+      .list-group-item {
+        background-color: var(--content-bg);
+        border-color: var(--border-light);
+        color: var(--text-dark);
+      }
+
+      /* Topbar adjustments */
+      .app-topbar {
+        background-color: var(--content-bg);
+      }
+
+      .app-topbar .btn-link {
+        color: var(--text-dark);
+      }
+
+      /* Dropdown menu */
+      .dropdown-menu {
+        background-color: var(--content-bg);
+        border: 1px solid var(--border-light);
+      }
+
+      .dropdown-item {
+        color: var(--text-dark);
+      }
+
+      .dropdown-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: var(--text-dark);
       }
     </style>
+    <script>
+      document.addEventListener('turbo:load', function() {
+        // Toggle submenu
+        document.querySelectorAll('.has-submenu > a').forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const parent = this.parentElement;
+            parent.classList.toggle('open');
+          });
+        });
+      });
+    </script>
   </head>
 
-  <body style="background-color: #e3f2fd;">
+  <body class="<%= 'app-authenticated' if user_signed_in? %>">
     <% if user_signed_in? %>
-      <!-- Background Watermark -->
-      <div class="background-watermark">
-        <%= tenant_logo_tag %>
-      </div>
+      <!-- Sidebar -->
+      <aside class="app-sidebar">
+        <%= link_to root_path, class: 'logo' do %>
+          CRM 3K
+        <% end %>
 
-      <!-- Navigation Bar -->
-      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-          <a class="navbar-brand d-flex align-items-center" href="<%= root_path %>">
-            <%= tenant_logo_tag(style: 'max-height: 40px; margin-right: 10px;') %>
-            <span class="fw-bold">CRM 3K</span>
-          </a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-              <% if current_user.can_access_crm? %>
-                <li class="nav-item">
-                  <%= link_to '<i class="bi bi-speedometer2"></i> Painel'.html_safe, dashboard_path, class: "nav-link #{'active' if controller_name == 'dashboard'}" %>
-                </li>
-
-                <% if current_user.super_admin? || current_user.admin? || current_user.commercial? || current_user.attendant? %>
-                  <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle #{'active' if ['leads', 'opportunities'].include?(controller_name)}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      <i class="bi bi-briefcase"></i> CRM
-                    </a>
-                    <ul class="dropdown-menu">
-                      <li><%= link_to 'Leads', leads_path, class: "dropdown-item #{'active' if controller_name == 'leads'}" %></li>
-                      <li><%= link_to 'Oportunidades', opportunities_path, class: "dropdown-item #{'active' if controller_name == 'opportunities'}" %></li>
-                    </ul>
-                  </li>
-                <% end %>
-
-                <% unless current_user.production? %>
-                  <li class="nav-item">
-                    <%= link_to '<i class="bi bi-people"></i> Clientes'.html_safe, customers_path, class: "nav-link #{'active' if controller_name == 'customers'}" %>
-                  </li>
-                <% end %>
-
-                <% if current_user.super_admin? || current_user.admin? || current_user.commercial? %>
-                  <li class="nav-item">
-                    <%= link_to '<i class="bi bi-box"></i> Produtos'.html_safe, products_path, class: "nav-link #{'active' if controller_name == 'products' || controller_name == 'price_rules'}" %>
-                  </li>
-                <% end %>
-
-                <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle #{'active' if ['estimates', 'jobs', 'estimate_items', 'job_items', 'job_files'].include?(controller_name)}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-printer"></i> Gráfica
-                  </a>
-                  <ul class="dropdown-menu">
-                    <% unless current_user.production? %>
-                      <li><%= link_to 'Orçamentos', estimates_path, class: "dropdown-item #{'active' if controller_name == 'estimates'}" %></li>
-                    <% end %>
-                    <li><%= link_to 'Trabalhos', jobs_path, class: "dropdown-item #{'active' if ['jobs', 'job_items', 'job_files'].include?(controller_name)}" %></li>
-                  </ul>
-                </li>
-
-                <% unless current_user.production? || current_user.attendant? %>
-                  <li class="nav-item">
-                    <%= link_to '<i class="bi bi-receipt"></i> Faturas'.html_safe, invoices_path, class: "nav-link #{'active' if ['invoices', 'payments'].include?(controller_name)}" %>
-                  </li>
-                <% end %>
-
-                <li class="nav-item">
-                  <%= link_to '<i class="bi bi-list-check"></i> Tarefas'.html_safe, tasks_path, class: "nav-link #{'active' if controller_name == 'tasks'}" %>
-                </li>
-
-                <% if current_user.admin? || current_user.super_admin? %>
-                  <li class="nav-item">
-                    <%= link_to '<i class="bi bi-graph-up"></i> Relatórios'.html_safe, reports_path, class: "nav-link #{'active' if controller_name == 'reports'}" %>
-                  </li>
-                <% end %>
+        <ul class="sidebar-menu">
+          <% if current_user.can_access_crm? %>
+            <li>
+              <%= link_to dashboard_path, class: controller_name == 'dashboard' ? 'active' : '' do %>
+                <i class="bi bi-speedometer2"></i>
+                <span>Painel</span>
               <% end %>
+            </li>
 
-              <% if current_user.can_access_cyber? %>
-                <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle #{'active' if ['lan_machines', 'lan_sessions', 'inventory_items', 'inventory_movements', 'daily_revenues', 'training_courses'].include?(controller_name)}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-pc-display"></i> Cyber Café
-                  </a>
-                  <ul class="dropdown-menu">
-                    <li><%= link_to 'Máquinas', lan_machines_path, class: "dropdown-item #{'active' if controller_name == 'lan_machines'}" %></li>
-                    <li><%= link_to 'Sessões', lan_sessions_path, class: "dropdown-item #{'active' if controller_name == 'lan_sessions'}" %></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><%= link_to 'Receitas Diárias', daily_revenues_path, class: "dropdown-item #{'active' if controller_name == 'daily_revenues'}" %></li>
-                    <li><%= link_to 'Cursos de Formação', training_courses_path, class: "dropdown-item #{'active' if controller_name == 'training_courses'}" %></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><%= link_to 'Inventário', inventory_items_path, class: "dropdown-item #{'active' if ['inventory_items', 'inventory_movements'].include?(controller_name)}" %></li>
-                  </ul>
-                </li>
-              <% end %>
-            </ul>
-            <ul class="navbar-nav">
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="bi bi-person-circle"></i> <%= current_user.email %>
-                  <span class="badge bg-primary"><%= current_user.role.capitalize %></span>
+            <% if current_user.super_admin? || current_user.admin? || current_user.commercial? || current_user.attendant? %>
+              <li class="has-submenu">
+                <a href="#">
+                  <i class="bi bi-briefcase"></i>
+                  <span>CRM</span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <% if current_user.super_admin? %>
-                    <li><%= link_to admin_tenants_path, class: "dropdown-item text-danger fw-bold" do %>
-                      <i class="bi bi-shield-fill-check"></i> Admin Panel
-                    <% end %></li>
-                    <li><hr class="dropdown-divider"></li>
-                  <% end %>
-                  <li><%= link_to 'Perfil', edit_user_registration_path, class: "dropdown-item" %></li>
-                  <% if current_user.admin? || current_user.super_admin? %>
-                    <li><%= link_to edit_company_settings_path, class: "dropdown-item" do %>
-                      <i class="bi bi-gear"></i> Configurações da Empresa
-                    <% end %></li>
-                  <% end %>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><%= link_to 'Sair', destroy_user_session_path, data: { turbo_method: :delete }, class: "dropdown-item" %></li>
+                <ul class="sidebar-submenu">
+                  <li><%= link_to 'Leads', leads_path, class: controller_name == 'leads' ? 'active' : '' %></li>
+                  <li><%= link_to 'Oportunidades', opportunities_path, class: controller_name == 'opportunities' ? 'active' : '' %></li>
                 </ul>
               </li>
+            <% end %>
+
+            <% unless current_user.production? %>
+              <li>
+                <%= link_to customers_path, class: controller_name == 'customers' ? 'active' : '' do %>
+                  <i class="bi bi-people"></i>
+                  <span>Clientes</span>
+                <% end %>
+              </li>
+            <% end %>
+
+            <% if current_user.super_admin? || current_user.admin? || current_user.commercial? %>
+              <li>
+                <%= link_to products_path, class: ['products', 'price_rules'].include?(controller_name) ? 'active' : '' do %>
+                  <i class="bi bi-box"></i>
+                  <span>Produtos</span>
+                <% end %>
+              </li>
+            <% end %>
+
+            <li>
+              <%= link_to services_path, class: controller_name == 'services' ? 'active' : '' do %>
+                <i class="bi bi-book"></i>
+                <span>Catálogo de Serviços</span>
+              <% end %>
+            </li>
+
+            <li class="has-submenu">
+              <a href="#">
+                <i class="bi bi-printer"></i>
+                <span>Gráfica</span>
+              </a>
+              <ul class="sidebar-submenu">
+                <% unless current_user.production? %>
+                  <li><%= link_to 'Orçamentos', estimates_path, class: controller_name == 'estimates' ? 'active' : '' %></li>
+                <% end %>
+                <li><%= link_to 'Trabalhos', jobs_path, class: ['jobs', 'job_items', 'job_files'].include?(controller_name) ? 'active' : '' %></li>
+              </ul>
+            </li>
+
+            <% unless current_user.production? || current_user.attendant? %>
+              <li>
+                <%= link_to invoices_path, class: ['invoices', 'payments'].include?(controller_name) ? 'active' : '' do %>
+                  <i class="bi bi-receipt"></i>
+                  <span>Faturas</span>
+                <% end %>
+              </li>
+            <% end %>
+
+            <li>
+              <%= link_to tasks_path, class: controller_name == 'tasks' ? 'active' : '' do %>
+                <i class="bi bi-list-check"></i>
+                <span>Tarefas</span>
+              <% end %>
+            </li>
+
+            <% if current_user.admin? || current_user.super_admin? %>
+              <li>
+                <%= link_to reports_path, class: controller_name == 'reports' ? 'active' : '' do %>
+                  <i class="bi bi-graph-up"></i>
+                  <span>Relatórios</span>
+                <% end %>
+              </li>
+            <% end %>
+          <% end %>
+
+          <% if current_user.can_access_cyber? %>
+            <li class="has-submenu">
+              <a href="#">
+                <i class="bi bi-pc-display"></i>
+                <span>Cyber Café</span>
+              </a>
+              <ul class="sidebar-submenu">
+                <li><%= link_to 'Máquinas', lan_machines_path, class: controller_name == 'lan_machines' ? 'active' : '' %></li>
+                <li><%= link_to 'Sessões', lan_sessions_path, class: controller_name == 'lan_sessions' ? 'active' : '' %></li>
+                <li><%= link_to 'Receitas Diárias', daily_revenues_path, class: controller_name == 'daily_revenues' ? 'active' : '' %></li>
+                <li><%= link_to 'Cursos de Formação', training_courses_path, class: controller_name == 'training_courses' ? 'active' : '' %></li>
+                <li><%= link_to 'Inventário', inventory_items_path, class: ['inventory_items', 'inventory_movements'].include?(controller_name) ? 'active' : '' %></li>
+              </ul>
+            </li>
+          <% end %>
+        </ul>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="app-main">
+        <!-- Top Bar -->
+        <div class="app-topbar">
+          <div class="dropdown">
+            <button class="btn btn-link text-decoration-none text-dark" type="button" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle"></i> <%= current_user.email %>
+              <span class="badge bg-primary"><%= current_user.role.capitalize %></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <% if current_user.super_admin? %>
+                <li><%= link_to admin_tenants_path, class: "dropdown-item text-danger fw-bold" do %>
+                  <i class="bi bi-shield-fill-check"></i> Admin Panel
+                <% end %></li>
+                <li><hr class="dropdown-divider"></li>
+              <% end %>
+              <li><%= link_to 'Perfil', edit_user_registration_path, class: "dropdown-item" %></li>
+              <% if current_user.can_manage_user_accounts? %>
+                <li><%= link_to users_path, class: "dropdown-item" do %>
+                  <i class="bi bi-people"></i> Gestão de Usuários
+                <% end %></li>
+              <% end %>
+              <% if current_user.admin? || current_user.super_admin? %>
+                <li><%= link_to edit_company_settings_path, class: "dropdown-item" do %>
+                  <i class="bi bi-gear"></i> Configurações da Empresa
+                <% end %></li>
+              <% end %>
+              <li><hr class="dropdown-divider"></li>
+              <li><%= link_to 'Sair', destroy_user_session_path, data: { turbo_method: :delete }, class: "dropdown-item" %></li>
             </ul>
           </div>
         </div>
-      </nav>
-    <% end %>
 
-    <!-- Flash Messages -->
-    <% if notice || alert %>
-      <div class="container mt-3">
-        <% if notice %>
-          <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <%= notice %>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <!-- Flash Messages -->
+        <% if notice || alert %>
+          <div class="app-content" style="padding-top: 20px; padding-bottom: 0;">
+            <% if notice %>
+              <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <%= notice %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            <% end %>
+            <% if alert %>
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <%= alert %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            <% end %>
           </div>
         <% end %>
-        <% if alert %>
-          <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <%= alert %>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        <% end %>
+
+        <!-- Page Content -->
+        <div class="app-content">
+          <%= yield %>
+        </div>
       </div>
-    <% end %>
-
-    <!-- Main Content -->
-    <div class="<%= user_signed_in? ? 'container-fluid mt-4' : '' %>">
+    <% else %>
+      <!-- Not logged in -->
       <%= yield %>
-    </div>
+    <% end %>
   </body>
 </html>

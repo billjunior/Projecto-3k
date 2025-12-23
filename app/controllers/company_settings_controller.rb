@@ -9,6 +9,7 @@ class CompanySettingsController < ApplicationController
     if @company_settings.update(company_settings_params)
       redirect_to edit_company_settings_path, notice: 'Configurações atualizadas com sucesso.'
     else
+      flash.now[:alert] = "Erro ao salvar: #{@company_settings.errors.full_messages.join(', ')}"
       render :edit, status: :unprocessable_entity
     end
   end
@@ -22,7 +23,11 @@ class CompanySettingsController < ApplicationController
   end
 
   def set_company_settings
-    @company_settings = current_user.tenant.company_setting || current_user.tenant.build_company_setting
+    @company_settings = current_user.tenant.company_setting
+    unless @company_settings
+      @company_settings = current_user.tenant.build_company_setting
+      @company_settings.save(validate: false) # Create the record without validation
+    end
   end
 
   def company_settings_params

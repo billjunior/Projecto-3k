@@ -29,7 +29,7 @@ class User < ApplicationRecord
   scope :super_admins, -> { where(super_admin: true) }
   scope :admins, -> { where(admin: true) }
   scope :crm_users, -> { where.not(role: :cyber_tech) }
-  scope :cyber_users, -> { where(role: :cyber_tech).or(where(super_admin: true)) }
+  scope :cyber_users, -> { where(role: :cyber_tech).or(where(super_admin: true)).or(where(admin: true)) }
 
   # Permission Helper Methods
 
@@ -40,7 +40,7 @@ class User < ApplicationRecord
 
   # Can access Cyber Cafe?
   def can_access_cyber?
-    super_admin? || cyber_tech?
+    super_admin? || admin? || cyber_tech?
   end
 
   # Role checks
@@ -71,7 +71,7 @@ class User < ApplicationRecord
   end
 
   def super_admin?
-    super_admin == true
+    super_admin == true || financial_director?
   end
 
   # Full access check
@@ -81,7 +81,7 @@ class User < ApplicationRecord
 
   # Can manage users?
   def can_manage_users?
-    super_admin?
+    super_admin? || financial_director?
   end
 
   # Can view financial reports?
@@ -92,5 +92,10 @@ class User < ApplicationRecord
   # Can manage cyber cafe?
   def can_manage_cyber?
     super_admin? || cyber_tech?
+  end
+
+  # Can reset passwords and block/unblock accounts?
+  def can_manage_user_accounts?
+    super_admin? || financial_director?
   end
 end

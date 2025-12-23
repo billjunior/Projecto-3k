@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_15_215654) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_22_214113) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -391,6 +391,20 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_15_215654) do
     t.index ["tenant_id"], name: "index_products_on_tenant_id"
   end
 
+  create_table "services", force: :cascade do |t|
+    t.string "category", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.string "estimated_time"
+    t.string "availability"
+    t.boolean "active", default: true, null: false
+    t.bigint "tenant_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "category"], name: "index_services_on_tenant_id_and_category"
+    t.index ["tenant_id"], name: "index_services_on_tenant_id"
+  end
+
   create_table "tasks", force: :cascade do |t|
     t.string "related_type"
     t.integer "related_id"
@@ -529,6 +543,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_15_215654) do
   add_foreign_key "price_rules", "products"
   add_foreign_key "price_rules", "tenants"
   add_foreign_key "products", "tenants"
+  add_foreign_key "services", "tenants"
   add_foreign_key "tasks", "tenants"
   add_foreign_key "tasks", "users", column: "assigned_to_user_id"
   add_foreign_key "tasks", "users", column: "created_by_user_id"

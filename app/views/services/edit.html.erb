@@ -1,0 +1,49 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-pencil"></i> Editar Serviço</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Dashboard', dashboard_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Catálogo', services_path %></li>
+          <li class="breadcrumb-item active" aria-current="page">Editar</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Editar: <%= @service.name %></h5>
+        </div>
+        <div class="card-body">
+          <%= render 'form', service: @service %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card border-warning">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Atenção</h5>
+        </div>
+        <div class="card-body">
+          <p>Alterações neste serviço serão visíveis imediatamente no catálogo para todos os usuários.</p>
+          <p class="mb-0">Se deseja ocultar temporariamente este serviço, desative-o ao invés de removê-lo.</p>
+        </div>
+      </div>
+
+      <div class="card border-info mt-3">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informações</h5>
+        </div>
+        <div class="card-body">
+          <p class="mb-2"><strong>Criado em:</strong><br><%= l(@service.created_at, format: :long) %></p>
+          <p class="mb-0"><strong>Última atualização:</strong><br><%= l(@service.updated_at, format: :long) %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

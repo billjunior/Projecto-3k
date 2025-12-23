@@ -1,0 +1,71 @@
+<%= form_with(model: service, local: true, class: 'needs-validation', novalidate: true) do |form| %>
+  <% if service.errors.any? %>
+    <div class="alert alert-danger">
+      <h4 class="alert-heading">
+        <%= pluralize(service.errors.count, "erro impediu", "erros impediram") %> que o serviço fosse salvo:
+      </h4>
+      <ul class="mb-0">
+        <% service.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <%= form.label :category, 'Categoria *', class: 'form-label' %>
+      <%= form.select :category,
+          options_for_select(Service.categories_list, service.category),
+          { include_blank: 'Selecione uma categoria' },
+          { class: 'form-select', required: true } %>
+      <div class="form-text">Categoria do serviço no catálogo</div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <%= form.label :name, 'Nome do Serviço *', class: 'form-label' %>
+      <%= form.text_field :name, class: 'form-control', required: true, placeholder: 'Ex: Impressão Digital A4/A3' %>
+      <div class="form-text">Nome que aparecerá no catálogo</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12 mb-3">
+      <%= form.label :description, 'Descrição', class: 'form-label' %>
+      <%= form.text_area :description, class: 'form-control', rows: 3, placeholder: 'Ex: Folhetos, relatórios, cópias coloridas...' %>
+      <div class="form-text">Descrição detalhada do serviço</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <%= form.label :estimated_time, 'Tempo Estimado', class: 'form-label' %>
+      <%= form.text_field :estimated_time, class: 'form-control', placeholder: 'Ex: 15-30 min' %>
+      <div class="form-text">Tempo médio de execução</div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <%= form.label :availability, 'Disponibilidade', class: 'form-label' %>
+      <%= form.select :availability,
+          options_for_select(['Na hora', 'Sob consulta', '24 horas', '48 horas'], service.availability),
+          { include_blank: 'Selecione' },
+          { class: 'form-select' } %>
+      <div class="form-text">Quando o serviço estará disponível</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12 mb-3">
+      <div class="form-check form-switch">
+        <%= form.check_box :active, class: 'form-check-input', role: 'switch' %>
+        <%= form.label :active, 'Serviço Ativo', class: 'form-check-label' %>
+        <div class="form-text">Apenas serviços ativos aparecem no catálogo para clientes</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between mt-4">
+    <%= link_to 'Cancelar', services_path, class: 'btn btn-secondary' %>
+    <%= form.submit service.new_record? ? 'Criar Serviço' : 'Atualizar Serviço', class: 'btn btn-primary' %>
+  </div>
+<% end %>

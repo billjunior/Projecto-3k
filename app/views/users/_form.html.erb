@@ -1,0 +1,83 @@
+<%= form_with(model: user, local: true) do |form| %>
+  <% if user.errors.any? %>
+    <div class="alert alert-danger">
+      <h4><%= pluralize(user.errors.count, "erro") %> ao salvar usuário:</h4>
+      <ul>
+        <% user.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <%= form.label :name, "Nome", class: 'form-label' %>
+      <%= form.text_field :name, class: 'form-control', required: true %>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <%= form.label :email, "Email", class: 'form-label' %>
+      <%= form.email_field :email, class: 'form-control', required: true %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <%= form.label :role, "Função", class: 'form-label' %>
+      <%= form.select :role,
+          User.roles.keys.map { |r| [r.humanize, r] },
+          { prompt: 'Selecione uma função' },
+          { class: 'form-select', required: true } %>
+      <div class="form-text">
+        Commercial: Assistente Comercial | Cyber Tech: Técnico Cyber Café | Attendant: Atendente | Production: Produção
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <%= form.label :department, "Departamento", class: 'form-label' %>
+      <%= form.select :department,
+          User.departments.keys.map { |d| [d.humanize, d] },
+          { prompt: 'Nenhum', include_blank: true },
+          { class: 'form-select' } %>
+      <div class="form-text">
+        Financial: Diretora Financeira | Commercial Dept: Depto Comercial | Technical Dept: Depto Técnico
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <div class="form-check form-switch">
+        <%= form.check_box :admin, class: 'form-check-input' %>
+        <%= form.label :admin, "Administrador (Diretor)", class: 'form-check-label' %>
+      </div>
+      <div class="form-text">Diretores têm acesso completo ao sistema</div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <div class="form-check form-switch">
+        <%= form.check_box :super_admin, class: 'form-check-input' %>
+        <%= form.label :super_admin, "Super Administrador", class: 'form-check-label' %>
+      </div>
+      <div class="form-text">Acesso total incluindo painel admin</div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <div class="form-check form-switch">
+        <%= form.check_box :active, class: 'form-check-input' %>
+        <%= form.label :active, "Conta Ativa", class: 'form-check-label' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle"></i>
+    <strong>Nota:</strong> Diretora Financeira = Administrador + Departamento Financial
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= form.submit "Salvar", class: 'btn btn-primary' %>
+    <%= link_to "Cancelar", users_path, class: 'btn btn-secondary' %>
+  </div>
+<% end %>

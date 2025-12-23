@@ -3,7 +3,7 @@ puts "Criando dados de exemplo..."
 
 # Limpar dados existentes
 [Payment, InvoiceItem, Invoice, JobFile, JobItem, Job, EstimateItem, Estimate,
- LanSession, LanMachine, Task, PriceRule, Product, Customer, User, Tenant].each(&:destroy_all)
+ LanSession, LanMachine, Task, PriceRule, Product, Customer, Service, AuditLog, User, Tenant].each(&:destroy_all)
 
 # Criar Tenant Demo
 puts "Criando tenant demo..."
@@ -43,7 +43,7 @@ super_admin = User.create!(
 )
 puts "  - Super Admin (Director): director@3k.com"
 
-# Admin - Directora Financeira (Acesso Total CRM, SEM Cyber)
+# Directora Financeira (Acesso Total igual ao Director: CRM + Cyber + Gestão de Usuários)
 directora_financeira = User.create!(
   name: "Ana Directora Financeira",
   email: "financeira@3k.com",
@@ -56,7 +56,7 @@ directora_financeira = User.create!(
   active: true,
   confirmed_at: Time.current
 )
-puts "  - Admin Financeira: financeira@3k.com"
+puts "  - Directora Financeira (Super Admin): financeira@3k.com"
 
 # Commercial - Assistente Comercial (CRM completo, SEM Cyber)
 assistente_comercial = User.create!(
@@ -183,35 +183,159 @@ end
 
 puts "  Criadas #{LanMachine.count} máquinas"
 
+# Criar Serviços do Catálogo
+puts "\nCriando catálogo de serviços..."
+
+ActsAsTenant.with_tenant(tenant) do
+  # Impressões Rápidas e Documentos
+  Service.create!([
+    {
+      category: 'Impressões Rápidas e Documentos',
+      name: 'Impressão Digital A4/A3',
+      description: 'Folhetos, relatórios, cópias coloridas',
+      estimated_time: '15-30 min',
+      availability: 'Na hora',
+      active: true
+    },
+    {
+      category: 'Impressões Rápidas e Documentos',
+      name: 'Impressão Laser Preto e Branco',
+      description: 'Documentos, faturas, formulários',
+      estimated_time: '10-20 min',
+      availability: 'Na hora',
+      active: true
+    },
+    {
+      category: 'Impressões Rápidas e Documentos',
+      name: 'Impressão Fotográfica',
+      description: 'Fotos, quadros, posters',
+      estimated_time: '20-40 min',
+      availability: 'Na hora',
+      active: true
+    },
+    {
+      category: 'Impressões Rápidas e Documentos',
+      name: 'Digitalização e Cópias',
+      description: 'Documentos e imagens',
+      estimated_time: '10-15 min',
+      availability: 'Na hora',
+      active: true
+    },
+    {
+      category: 'Impressões Rápidas e Documentos',
+      name: 'Impressão Frente e Verso (Duplex)',
+      description: 'Apostilas, manuais, boletins',
+      estimated_time: '15-30 min',
+      availability: 'Na hora',
+      active: true
+    },
+    {
+      category: 'Impressões Rápidas e Documentos',
+      name: 'Encadernação Rápida (Grampos, Espiral)',
+      description: 'Trabalhos escolares, relatórios',
+      estimated_time: '10-20 min',
+      availability: 'Na hora',
+      active: true
+    },
+
+    # Personalização
+    {
+      category: 'Personalização',
+      name: 'Carimbos Personalizados',
+      description: 'Nome, cargo, empresa, logotipo',
+      estimated_time: '30-60 min',
+      availability: 'Na hora',
+      active: true
+    },
+    {
+      category: 'Personalização',
+      name: 'Cartões de Visita',
+      description: 'Design personalizado, impressão de qualidade',
+      estimated_time: '24 horas',
+      availability: '24 horas',
+      active: true
+    },
+    {
+      category: 'Personalização',
+      name: 'Banners e Lonas',
+      description: 'Publicidade exterior, eventos',
+      estimated_time: '48 horas',
+      availability: '48 horas',
+      active: true
+    },
+
+    # Design Gráfico
+    {
+      category: 'Design Gráfico',
+      name: 'Criação de Logotipo',
+      description: 'Identidade visual da empresa',
+      estimated_time: '3-5 dias',
+      availability: 'Sob consulta',
+      active: true
+    },
+    {
+      category: 'Design Gráfico',
+      name: 'Design de Folhetos',
+      description: 'Material publicitário',
+      estimated_time: '1-2 dias',
+      availability: 'Sob consulta',
+      active: true
+    },
+
+    # Encadernação
+    {
+      category: 'Encadernação',
+      name: 'Encadernação Térmica',
+      description: 'Acabamento profissional para documentos',
+      estimated_time: '30-60 min',
+      availability: 'Na hora',
+      active: true
+    },
+    {
+      category: 'Encadernação',
+      name: 'Encadernação Capa Dura',
+      description: 'Teses, projetos acadêmicos',
+      estimated_time: '24 horas',
+      availability: '24 horas',
+      active: true
+    }
+  ])
+end
+
+puts "  Criados #{Service.count} serviços no catálogo"
+
 puts "\nDados de exemplo criados com sucesso!"
 puts "\n" + "="*80
-puts "=== ARQUITETURA DE SEGURANÇA - USUÁRIOS DE TESTE ==="
+puts "=== CREDENCIAIS DE ACESSO - CRM 3K ==="
 puts "="*80
-puts "\n1. SUPER ADMIN (Director) - Acesso Total (CRM + Cyber)"
+puts "\n1. DIRECTOR GERAL - Super Admin"
 puts "   Email: director@3k.com"
 puts "   Senha: Password123!"
-puts "   Permissões: Tudo"
-puts "\n2. ADMIN (Directora Financeira) - Acesso Total CRM, SEM Cyber"
+puts "   Acesso: TOTAL (CRM + Cyber + Admin Panel + Gestão de Usuários)"
+puts "\n2. DIRECTORA FINANCEIRA - Equivalente Super Admin"
 puts "   Email: financeira@3k.com"
 puts "   Senha: Password123!"
-puts "   Permissões: CRM completo, relatórios financeiros, SEM acesso Cyber"
-puts "\n3. COMMERCIAL (Assistente Comercial) - CRM Completo"
+puts "   Acesso: TOTAL (CRM + Cyber + Gestão de Usuários + Relatórios Financeiros)"
+puts "   Pode: Resetar senhas, bloquear/desbloquear contas"
+puts "\n3. ASSISTENTE COMERCIAL"
 puts "   Email: comercial@3k.com"
 puts "   Senha: Password123!"
-puts "   Permissões: Leads, Oportunidades, Clientes, Orçamentos, Trabalhos, Faturas"
-puts "\n4. CYBER TECH (Técnico Cyber) - APENAS Cyber Café"
+puts "   Acesso: CRM Completo (Leads, Oportunidades, Clientes, Produtos, Orçamentos, Trabalhos, Faturas)"
+puts "\n4. TÉCNICO CYBER CAFÉ"
 puts "   Email: cyber@3k.com"
 puts "   Senha: Password123!"
-puts "   Permissões: Máquinas LAN, Sessões, Inventário, Receitas Diárias, Cursos"
-puts "   BLOQUEADO: Acesso ao CRM principal"
-puts "\n5. ATTENDANT (Atendente) - Acesso Limitado"
+puts "   Acesso: APENAS Cyber Café (Máquinas, Sessões, Inventário, Receitas Diárias, Cursos)"
+puts "\n5. ATENDENTE"
 puts "   Email: atendente@3k.com"
 puts "   Senha: Password123!"
-puts "   Permissões: Visualizar clientes, criar orçamentos"
-puts "\n6. PRODUCTION (Produção) - Apenas Trabalhos"
+puts "   Acesso: CRM Limitado (Leads, Oportunidades, Clientes, Orçamentos, Trabalhos, Tarefas)"
+puts "\n6. PRODUÇÃO"
 puts "   Email: producao@3k.com"
 puts "   Senha: Password123!"
-puts "   Permissões: Visualizar e atualizar trabalhos, upload de arquivos"
+puts "   Acesso: Apenas Trabalhos e Tarefas"
 puts "\n" + "="*80
-puts "NOTA: Todos os usuários confirmados automaticamente para teste"
+puts "IMPORTANTES MUDANÇAS:"
+puts "- Director e Directora Financeira têm as MESMAS permissões"
+puts "- Ambos podem gerir usuários (criar, editar, resetar senhas, bloquear/desbloquear)"
+puts "- Todos os usuários já confirmados automaticamente para teste"
 puts "="*80

@@ -105,7 +105,7 @@ class ReportsController < ApplicationController
     @paid_sales = @invoices.where(status: 'paga').sum(:total_value)
 
     # Orçamentos do período
-    @estimates = Estimate.where(estimate_date: @start_date..@end_date)
+    @estimates = Estimate.where(created_at: @start_date..@end_date)
     @estimates_approved = @estimates.where(status: 'aprovado')
     @conversion_rate = @estimates_approved.count.to_f / @estimates.count * 100 if @estimates.any?
 
@@ -141,7 +141,10 @@ class ReportsController < ApplicationController
     respond_to do |format|
       format.html
       format.pdf do
-        # TODO: Implement PDF generation
+        pdf = DailyRevenueReportPdf.new(ActsAsTenant.current_tenant, @month, @year).generate
+        send_data pdf, filename: "receitas_diarias_#{@month}_#{@year}.pdf",
+                       type: 'application/pdf',
+                       disposition: 'inline'
       end
     end
   end

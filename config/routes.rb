@@ -10,6 +10,22 @@ Rails.application.routes.draw do
   # Company Settings (Singleton resource)
   resource :company_settings, only: [:edit, :update]
 
+  # Service Catalog
+  resources :services do
+    member do
+      post :toggle_active
+    end
+  end
+
+  # User Management (Directors only)
+  resources :users, except: [:show, :destroy] do
+    member do
+      post :reset_password
+      post :lock_account
+      post :unlock_account
+    end
+  end
+
   # Root
   root 'dashboard#index'
 

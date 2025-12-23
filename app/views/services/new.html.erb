@@ -1,0 +1,42 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-plus-circle"></i> Novo Serviço</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Dashboard', dashboard_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Catálogo', services_path %></li>
+          <li class="breadcrumb-item active" aria-current="page">Novo</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Informações do Serviço</h5>
+        </div>
+        <div class="card-body">
+          <%= render 'form', service: @service %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card border-info">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0"><i class="bi bi-info-circle"></i> Ajuda</h5>
+        </div>
+        <div class="card-body">
+          <p><strong>Categoria:</strong> Agrupa serviços similares no catálogo.</p>
+          <p><strong>Nome:</strong> Identifique claramente o serviço oferecido.</p>
+          <p><strong>Descrição:</strong> Detalhe o que está incluso no serviço.</p>
+          <p><strong>Tempo:</strong> Informe o prazo médio de execução.</p>
+          <p><strong>Disponibilidade:</strong> Quando o cliente pode receber o serviço.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
