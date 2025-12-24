@@ -9,6 +9,13 @@
         </ol>
       </nav>
     </div>
+    <div class="col-auto">
+      <%= link_to invoices_reports_path(format: :pdf, start_date: @start_date, end_date: @end_date),
+                  class: 'btn btn-danger',
+                  target: '_blank' do %>
+        <i class="bi bi-file-pdf"></i> Exportar PDF
+      <% end %>
+    </div>
   </div>
 
   <!-- Filtro de Período -->
@@ -132,6 +139,10 @@
               <% end %>
             </tbody>
           </table>
+        </div>
+
+        <div class="mt-3 d-flex justify-content-center">
+          <%= paginate @invoices %>
         </div>
       <% else %>
         <div class="text-center py-5 text-muted">

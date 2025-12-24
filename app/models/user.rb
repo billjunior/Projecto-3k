@@ -11,6 +11,9 @@ class User < ApplicationRecord
   # Associations
   belongs_to :tenant, optional: true  # Optional during transition period
 
+  # Callbacks
+  after_create :set_must_change_password
+
   # Enums
   # Roles: commercial (assistente comercial), cyber_tech (tecnico cyber cafe),
   # attendant (atendente), production (producao)
@@ -65,6 +68,10 @@ class User < ApplicationRecord
     admin? && department == 'financial'
   end
 
+  def director?
+    admin? && !financial_director?
+  end
+
   # Admin checks
   def admin?
     admin == true
@@ -97,5 +104,50 @@ class User < ApplicationRecord
   # Can reset passwords and block/unblock accounts?
   def can_manage_user_accounts?
     super_admin? || financial_director?
+  end
+
+  # Check if user is privileged (changes password in-app instead of email)
+  def privileged_user?
+    super_admin? || admin? || financial_director? || director?
+  end
+
+  # Check if password has expired (90 days)
+  def password_expired?
+    return true if password_changed_at.nil? # Never changed
+    password_changed_at < 90.days.ago
+  end
+
+  # Check if needs to change password (first login or expired)
+  def needs_password_change?
+    must_change_password? || password_expired?
+  end
+
+  # Mark password as changed
+  def mark_password_changed!
+    update_columns(must_change_password: false, password_changed_at: Time.current)
+  end
+
+  # Validate strong password
+  validate :password_complexity, if: :password_required?
+
+  private
+
+  def password_complexity
+    return if password.blank?
+
+    errors.add :password, 'deve ter no mínimo 12 caracteres' if password.length < 12
+    errors.add :password, 'deve conter pelo menos uma letra maiúscula' unless password.match?(/[A-Z]/)
+    errors.add :password, 'deve conter pelo menos uma letra minúscula' unless password.match?(/[a-z]/)
+    errors.add :password, 'deve conter pelo menos um número' unless password.match?(/\d/)
+    errors.add :password, 'deve conter pelo menos um caractere especial (!@#$%^&*()_+-=[]{}|;:,.<>?)' unless password.match?(/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/)
+  end
+
+  def password_required?
+    !persisted? || password.present? || password_confirmation.present?
+  end
+
+  # Ensure new users must change password on first login
+  def set_must_change_password
+    update_column(:must_change_password, true) unless must_change_password == false
   end
 end

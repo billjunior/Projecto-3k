@@ -22,6 +22,17 @@ class InventoryItemsController < ApplicationController
 
     # Pagination
     @inventory_items = @inventory_items.page(params[:page]).per(20)
+
+    respond_to do |format|
+      format.html
+      format.pdf do
+        all_items = policy_scope(InventoryItem).includes(:inventory_movements).order(:product_name)
+        pdf = InventoryReportPdf.new(ActsAsTenant.current_tenant, all_items).generate
+        send_data pdf, filename: "relatorio_inventario_#{Time.current.strftime('%Y%m%d')}.pdf",
+                       type: 'application/pdf',
+                       disposition: 'inline'
+      end
+    end
   end
 
   def show

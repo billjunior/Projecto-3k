@@ -3,6 +3,10 @@ Rails.application.routes.draw do
     sessions: 'users/sessions'
   }
 
+  # Password Change (First Login)
+  get 'change_password', to: 'password_changes#show'
+  put 'change_password', to: 'password_changes#update'
+
   # Cyber Café - Daily Revenues
   resources :daily_revenues
   resources :training_courses
@@ -44,6 +48,7 @@ Rails.application.routes.draw do
       post :approve
       post :reject
       post :convert_to_job
+      get :pdf
     end
     resources :estimate_items, only: [:create, :update, :destroy]
   end
@@ -136,11 +141,21 @@ Rails.application.routes.draw do
         post :extend_subscription
       end
     end
+
+    resources :subscriptions, only: [:index] do
+      member do
+        post :renew
+        post :suspend
+        post :activate
+        post :grant_trial
+      end
+    end
   end
 
   # Subscription management
   resource :subscription, only: [] do
     get :expired
+    post :renew_request
   end
 
   # Health check

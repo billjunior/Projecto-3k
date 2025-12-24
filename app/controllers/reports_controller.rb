@@ -14,7 +14,7 @@ class ReportsController < ApplicationController
       'EXTRACT(MONTH FROM start_time) = ? AND EXTRACT(YEAR FROM start_time) = ?',
       @month,
       @year
-    ).includes(:lan_machine, :customer).order(start_time: :desc)
+    ).includes(:lan_machine, :customer).order(start_time: :desc).page(params[:page]).per(20)
 
     @total_sessions = @sessions.count
     @active_sessions = @sessions.where(status: 'aberta').count
@@ -43,11 +43,22 @@ class ReportsController < ApplicationController
 
     @invoices = invoices_scope.includes(:customer, :payments)
                               .order(invoice_date: :desc)
+                              .page(params[:page]).per(20)
 
     @total_invoiced = invoices_scope.sum(:total_value)
     @total_paid = invoices_scope.joins(:payments).sum('payments.amount')
     @pending_amount = @total_invoiced - @total_paid
     @invoices_by_status = invoices_scope.group(:status).count
+
+    respond_to do |format|
+      format.html
+      format.pdf do
+        pdf = InvoicesReportPdf.new(ActsAsTenant.current_tenant, @start_date, @end_date).generate
+        send_data pdf, filename: "relatorio_faturas_#{@start_date.strftime('%Y%m%d')}_#{@end_date.strftime('%Y%m%d')}.pdf",
+                       type: 'application/pdf',
+                       disposition: 'inline'
+      end
+    end
   end
 
   def customers
@@ -65,9 +76,9 @@ class ReportsController < ApplicationController
       @customers = @customers.where(created_at: start_date..end_date)
     end
 
-    @customers = @customers.order(created_at: :desc)
+    @customers = @customers.order(created_at: :desc).page(params[:page]).per(20)
 
-    @total_customers = @customers.count
+    @total_customers = Customer.count
     @customers_with_invoices = @customers.joins(:invoices).distinct.count
     @top_customers = @customers.joins(:invoices)
                                .select('customers.*, SUM(invoices.total_value) as total_spent')
@@ -77,6 +88,17 @@ class ReportsController < ApplicationController
 
     # Dados para gráficos
     @customers_by_type = Customer.group(:customer_type).count
+
+    respond_to do |format|
+      format.html
+      format.pdf do
+        all_customers = Customer.includes(:invoices, :opportunities, :estimates).order(created_at: :desc)
+        pdf = CustomersReportPdf.new(ActsAsTenant.current_tenant, all_customers).generate
+        send_data pdf, filename: "relatorio_clientes_#{Time.current.strftime('%Y%m%d')}.pdf",
+                       type: 'application/pdf',
+                       disposition: 'inline'
+      end
+    end
   end
 
   def opportunities
@@ -86,12 +108,24 @@ class ReportsController < ApplicationController
 
     @opportunities = opportunities_scope.includes(:customer, :assigned_to_user)
                                         .order(created_at: :desc)
+                                        .page(params[:page]).per(20)
 
     @opportunities_by_stage = opportunities_scope.group(:stage).count
     @total_value = opportunities_scope.sum(:value)
     @weighted_value = @opportunities.sum { |o| (o.value || 0) * (o.probability || 0) / 100.0 }
     @conversion_rate = opportunities_scope.won.count.to_f / opportunities_scope.count * 100 if opportunities_scope.any?
     @avg_deal_size = opportunities_scope.won.average(:value)
+
+    respond_to do |format|
+      format.html
+      format.pdf do
+        all_opportunities = Opportunity.includes(:customer, :assigned_to_user).order(created_at: :desc)
+        pdf = OpportunitiesReportPdf.new(ActsAsTenant.current_tenant, all_opportunities).generate
+        send_data pdf, filename: "relatorio_oportunidades_#{Time.current.strftime('%Y%m%d')}.pdf",
+                       type: 'application/pdf',
+                       disposition: 'inline'
+      end
+    end
   end
 
   def sales
@@ -117,6 +151,16 @@ class ReportsController < ApplicationController
     @monthly_sales = Invoice.where('invoice_date >= ?', 12.months.ago)
                            .group("DATE_TRUNC('month', invoice_date)")
                            .sum(:total_value)
+
+    respond_to do |format|
+      format.html
+      format.pdf do
+        pdf = SalesReportPdf.new(ActsAsTenant.current_tenant, @start_date, @end_date).generate
+        send_data pdf, filename: "relatorio_vendas_#{@start_date.strftime('%Y%m%d')}_#{@end_date.strftime('%Y%m%d')}.pdf",
+                       type: 'application/pdf',
+                       disposition: 'inline'
+      end
+    end
   end
 
   def inventory
@@ -130,7 +174,7 @@ class ReportsController < ApplicationController
     @year = params[:year]&.to_i || Date.today.year
 
     all_month_revenues = DailyRevenue.for_month(@month, @year)
-    @daily_revenues = all_month_revenues.by_date.limit(100)
+    @daily_revenues = all_month_revenues.by_date.page(params[:page]).per(20)
 
     @total_entries = all_month_revenues.sum(:entry)
     @total_exits = all_month_revenues.sum(:exit)
@@ -155,7 +199,7 @@ class ReportsController < ApplicationController
     @year = params[:year]&.to_i || Date.today.year
 
     all_month_courses = TrainingCourse.for_month(@month, @year)
-    @training_courses = all_month_courses.by_date.limit(100)
+    @training_courses = all_month_courses.by_date.page(params[:page]).per(20)
 
     @total_value = all_month_courses.sum(:total_value)
     @total_paid = all_month_courses.sum(:amount_paid)
@@ -166,7 +210,10 @@ class ReportsController < ApplicationController
     respond_to do |format|
       format.html
       format.pdf do
-        # TODO: Implement PDF generation
+        pdf = TrainingCoursesReportPdf.new(ActsAsTenant.current_tenant, @month, @year).generate
+        send_data pdf, filename: "relatorio_formacoes_#{@month}_#{@year}.pdf",
+                       type: 'application/pdf',
+                       disposition: 'inline'
       end
     end
   end
@@ -216,7 +263,24 @@ class ReportsController < ApplicationController
     respond_to do |format|
       format.html
       format.pdf do
-        # TODO: Implement PDF generation
+        report_data = {
+          opportunities_by_source: @opportunities_by_source,
+          opportunities_won_by_source: @opportunities_won_by_source,
+          opportunities_value_by_source: @opportunities_value_by_source,
+          opportunities_won_value_by_source: @opportunities_won_value_by_source,
+          leads_by_source: @leads_by_source,
+          leads_converted_by_source: @leads_converted_by_source,
+          total_opportunities: @total_opportunities,
+          total_won: @total_won,
+          total_value: @total_value,
+          total_won_value: @total_won_value,
+          total_leads: @total_leads,
+          total_converted: @total_converted
+        }
+        pdf = ContactSourcesReportPdf.new(ActsAsTenant.current_tenant, @month, @year, report_data).generate
+        send_data pdf, filename: "relatorio_fontes_contacto_#{@month}_#{@year}.pdf",
+                       type: 'application/pdf',
+                       disposition: 'inline'
       end
     end
   end

@@ -10,6 +10,9 @@
       </nav>
     </div>
     <div class="col-auto">
+      <%= link_to inventory_items_path(format: :pdf), class: 'btn btn-danger me-2', target: '_blank' do %>
+        <i class="bi bi-file-pdf"></i> Exportar PDF
+      <% end %>
       <%= link_to reports_inventory_items_path, class: 'btn btn-info me-2' do %>
         <i class="bi bi-graph-up"></i> Relatórios
       <% end %>

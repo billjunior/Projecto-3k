@@ -9,6 +9,13 @@
         </ol>
       </nav>
     </div>
+    <div class="col-auto">
+      <%= link_to reports_customers_path(format: :pdf),
+                  class: 'btn btn-danger',
+                  target: '_blank' do %>
+        <i class="bi bi-file-pdf"></i> Exportar PDF
+      <% end %>
+    </div>
   </div>
 
   <!-- Filtros -->

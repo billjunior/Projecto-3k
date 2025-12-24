@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_23_220238) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_24_213848) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -456,8 +456,16 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_23_220238) do
     t.jsonb "settings", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "subscription_status", default: "trial"
+    t.datetime "subscription_expires_at"
+    t.string "subscription_plan", default: "monthly"
+    t.datetime "last_payment_date"
+    t.integer "grace_period_days", default: 7
+    t.boolean "is_master"
     t.index ["status"], name: "index_tenants_on_status"
     t.index ["subdomain"], name: "index_tenants_on_subdomain", unique: true
+    t.index ["subscription_expires_at"], name: "index_tenants_on_subscription_expires_at"
+    t.index ["subscription_status"], name: "index_tenants_on_subscription_status"
   end
 
   create_table "training_courses", force: :cascade do |t|
@@ -504,6 +512,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_23_220238) do
     t.datetime "confirmed_at"
     t.datetime "confirmation_sent_at"
     t.string "unconfirmed_email"
+    t.boolean "must_change_password", default: true, null: false
+    t.datetime "password_changed_at"
     t.index ["admin"], name: "index_users_on_admin"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["department"], name: "index_users_on_department"
