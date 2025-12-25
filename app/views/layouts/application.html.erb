@@ -623,7 +623,9 @@
                 <% end %></li>
                 <li><hr class="dropdown-divider"></li>
               <% end %>
-              <li><%= link_to 'Perfil', edit_user_registration_path, class: "dropdown-item" %></li>
+              <% unless current_user.attendant? %>
+                <li><%= link_to 'Perfil', edit_user_registration_path, class: "dropdown-item" %></li>
+              <% end %>
               <% if current_user.can_manage_user_accounts? %>
                 <li><%= link_to users_path, class: "dropdown-item" do %>
                   <i class="bi bi-people"></i> Gestão de Usuários
@@ -634,7 +636,9 @@
                   <i class="bi bi-gear"></i> Configurações da Empresa
                 <% end %></li>
               <% end %>
-              <li><hr class="dropdown-divider"></li>
+              <% unless current_user.attendant? && !current_user.can_manage_user_accounts? && !current_user.admin? && !current_user.super_admin? %>
+                <li><hr class="dropdown-divider"></li>
+              <% end %>
               <li><%= link_to 'Sair', destroy_user_session_path, data: { turbo_method: :delete }, class: "dropdown-item" %></li>
             </ul>
           </div>
