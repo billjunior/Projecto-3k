@@ -116,6 +116,10 @@ GEM
       railties (>= 4.1.0)
       responders
       warden (~> 1.2.3)
+    dotenv (3.2.0)
+    dotenv-rails (3.2.0)
+      dotenv (= 3.2.0)
+      railties (>= 6.1)
     drb (2.2.3)
     erb (4.0.4)
       cgi (>= 0.3.3)
@@ -326,6 +330,7 @@ DEPENDENCIES
   caxlsx_rails
   debug
   devise (~> 4.9)
+  dotenv-rails
   importmap-rails
   io-console (~> 0.7.0)
   jbuilder

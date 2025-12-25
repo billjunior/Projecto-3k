@@ -36,13 +36,29 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
-
+  # Configure Action Mailer for email delivery
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = true
   config.action_mailer.perform_caching = false
 
   # Configure default URL options for mailer
-  config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+  config.action_mailer.default_url_options = {
+    host: ENV.fetch('MAILER_HOST', 'localhost'),
+    port: ENV.fetch('MAILER_PORT', '3000')
+  }
+
+  # SMTP settings for Mailtrap (or any SMTP service)
+  config.action_mailer.smtp_settings = {
+    address:              ENV.fetch('SMTP_ADDRESS', 'sandbox.smtp.mailtrap.io'),
+    port:                 ENV.fetch('SMTP_PORT', '2525'),
+    user_name:            ENV.fetch('SMTP_USERNAME', ''),
+    password:             ENV.fetch('SMTP_PASSWORD', ''),
+    authentication:       'plain',
+    enable_starttls_auto: true,
+    open_timeout:         5,
+    read_timeout:         5
+  }
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
