@@ -34,7 +34,7 @@
                   <td><%= lead.company %></td>
                   <td>
                     <%= lead.email %><br>
-                    <small><%= lead.phone %></small>
+                    <small><%= phone_link(lead.phone, icon: false) if lead.phone.present? %></small>
                   </td>
                   <td>
                     <%

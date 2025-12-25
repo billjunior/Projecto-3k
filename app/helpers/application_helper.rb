@@ -52,4 +52,57 @@ module ApplicationHelper
       company_name || options[:fallback] || 'CRM 3K'
     end
   end
+
+  # Helper para criar link de WhatsApp clicável
+  # Opções:
+  #   - icon: exibir ícone do WhatsApp (padrão: true)
+  #   - message: mensagem pré-definida (opcional)
+  #   - class: classes CSS adicionais
+  def whatsapp_link(phone_number, options = {})
+    return nil if phone_number.blank?
+
+    # Formatar número: remover espaços, parênteses, hífens, etc
+    clean_number = phone_number.to_s.gsub(/[\s\-\(\)\.]/,  '')
+
+    # Adicionar código do país (+244 para Angola) se não estiver presente
+    # Aceita números com +244, 00244, ou 244 no início
+    clean_number = "244#{clean_number}" unless clean_number.start_with?('244', '+244', '00244')
+    clean_number = clean_number.gsub(/^\+/, '').gsub(/^00/, '')
+
+    # Construir URL do WhatsApp
+    whatsapp_url = "https://wa.me/#{clean_number}"
+    whatsapp_url += "?text=#{ERB::Util.url_encode(options[:message])}" if options[:message].present?
+
+    # Construir link HTML
+    icon = options.fetch(:icon, true) ? content_tag(:i, '', class: 'bi bi-whatsapp text-success me-1') : ''
+    css_class = "text-decoration-none #{options[:class]}".strip
+
+    link_to whatsapp_url,
+            target: '_blank',
+            rel: 'noopener noreferrer',
+            class: css_class,
+            title: "Abrir WhatsApp com #{phone_number}" do
+      concat icon
+      concat phone_number
+    end
+  end
+
+  # Helper para criar link de telefone clicável (tel:)
+  # Opções:
+  #   - icon: exibir ícone de telefone (padrão: true)
+  #   - class: classes CSS adicionais
+  def phone_link(phone_number, options = {})
+    return nil if phone_number.blank?
+
+    clean_number = phone_number.to_s.gsub(/[\s\-\(\)\.]/,  '')
+    icon = options.fetch(:icon, true) ? content_tag(:i, '', class: 'bi bi-telephone me-1') : ''
+    css_class = "text-decoration-none #{options[:class]}".strip
+
+    link_to "tel:#{clean_number}",
+            class: css_class,
+            title: "Ligar para #{phone_number}" do
+      concat icon
+      concat phone_number
+    end
+  end
 end

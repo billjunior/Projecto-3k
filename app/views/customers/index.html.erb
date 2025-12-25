@@ -53,10 +53,10 @@
                   </td>
                   <td>
                     <% if customer.phone.present? %>
-                      <i class="bi bi-telephone"></i> <%= customer.phone %>
+                      <%= phone_link(customer.phone) %>
                     <% end %>
                     <% if customer.whatsapp.present? %>
-                      <br><i class="bi bi-whatsapp text-success"></i> <%= customer.whatsapp %>
+                      <br><%= whatsapp_link(customer.whatsapp) %>
                     <% end %>
                   </td>
                   <td><%= customer.email %></td>

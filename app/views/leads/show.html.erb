@@ -36,7 +36,7 @@
             <dd class="col-sm-8"><%= @lead.email %></dd>
 
             <dt class="col-sm-4">Telefone:</dt>
-            <dd class="col-sm-8"><%= @lead.phone %></dd>
+            <dd class="col-sm-8"><%= phone_link(@lead.phone) if @lead.phone.present? %></dd>
 
             <dt class="col-sm-4">Fonte:</dt>
             <dd class="col-sm-8"><%= @lead.source %></dd>
