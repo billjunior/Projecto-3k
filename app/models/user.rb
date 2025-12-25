@@ -12,7 +12,9 @@ class User < ApplicationRecord
   belongs_to :tenant, optional: true  # Optional during transition period
 
   # Callbacks
-  after_create :set_must_change_password
+  before_validation :set_default_role, on: :create
+  before_validation :set_must_change_password, on: :create
+  after_create :skip_confirmation_in_development
 
   # Enums
   # Roles: commercial (assistente comercial), cyber_tech (tecnico cyber cafe),
@@ -139,15 +141,25 @@ class User < ApplicationRecord
     errors.add :password, 'deve conter pelo menos uma letra maiúscula' unless password.match?(/[A-Z]/)
     errors.add :password, 'deve conter pelo menos uma letra minúscula' unless password.match?(/[a-z]/)
     errors.add :password, 'deve conter pelo menos um número' unless password.match?(/\d/)
-    errors.add :password, 'deve conter pelo menos um caractere especial (!@#$%^&*()_+-=[]{}|;:,.<>?)' unless password.match?(/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/)
+    errors.add :password, 'deve conter pelo menos um carácter especial (!@#$%^&*()_+-=[]{}|;:,.<>?)' unless password.match?(/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/)
   end
 
   def password_required?
     !persisted? || password.present? || password_confirmation.present?
   end
 
+  # Set default role for new users
+  def set_default_role
+    self.role ||= :commercial
+  end
+
   # Ensure new users must change password on first login
   def set_must_change_password
-    update_column(:must_change_password, true) unless must_change_password == false
+    self.must_change_password = true if must_change_password.nil?
+  end
+
+  # Skip email confirmation in development environment
+  def skip_confirmation_in_development
+    confirm if Rails.env.development? && !confirmed?
   end
 end

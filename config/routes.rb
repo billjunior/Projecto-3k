@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   devise_for :users, controllers: {
-    sessions: 'users/sessions'
+    sessions: 'users/sessions',
+    registrations: 'users/registrations'
   }
 
   # Password Change (First Login)
@@ -22,7 +23,7 @@ Rails.application.routes.draw do
   end
 
   # User Management (Directors only)
-  resources :users, except: [:show, :destroy] do
+  resources :users, except: [:show] do
     member do
       post :reset_password
       post :lock_account

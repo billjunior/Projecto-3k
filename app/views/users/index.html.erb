@@ -90,6 +90,16 @@
                         <i class="bi bi-lock"></i>
                       <% end %>
                     <% end %>
+
+                    <% unless user == current_user || (user.super_admin? && User.where(super_admin: true).count <= 1) %>
+                      <%= button_to user_path(user),
+                          method: :delete,
+                          class: 'btn btn-sm btn-outline-danger',
+                          title: 'Deletar Usuário',
+                          form: { data: { turbo_confirm: 'ATENÇÃO: Tem certeza que deseja DELETAR este usuário? Esta ação não pode ser desfeita!' } } do %>
+                        <i class="bi bi-trash"></i>
+                      <% end %>
+                    <% end %>
                   </div>
                 </td>
               </tr>

@@ -1,7 +1,7 @@
 class UsersController < ApplicationController
   before_action :authenticate_user!
   before_action :check_user_management_access
-  before_action :set_user, only: [:edit, :update, :reset_password, :lock_account, :unlock_account]
+  before_action :set_user, only: [:edit, :update, :destroy, :reset_password, :lock_account, :unlock_account]
 
   def index
     @users = User.all.order(created_at: :desc)
@@ -17,7 +17,7 @@ class UsersController < ApplicationController
     @user.skip_confirmation!
 
     if @user.save
-      redirect_to users_path, notice: "Usuário criado com sucesso. Senha temporária: #{@user.password}"
+      redirect_to users_path, notice: "Utilizador criado com sucesso. Palavra-passe temporária: #{@user.password}"
     else
       render :new, status: :unprocessable_entity
     end
@@ -28,9 +28,29 @@ class UsersController < ApplicationController
 
   def update
     if @user.update(user_params)
-      redirect_to users_path, notice: 'Usuário atualizado com sucesso.'
+      redirect_to users_path, notice: 'Utilizador atualizado com sucesso.'
     else
       render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    # Prevent deleting yourself
+    if @user == current_user
+      redirect_to users_path, alert: 'Não pode eliminar a sua própria conta.'
+      return
+    end
+
+    # Prevent deleting the last super admin
+    if @user.super_admin? && User.where(super_admin: true).count <= 1
+      redirect_to users_path, alert: 'Não é possível eliminar o último Super Admin do sistema.'
+      return
+    end
+
+    if @user.destroy
+      redirect_to users_path, notice: 'Utilizador eliminado com sucesso.'
+    else
+      redirect_to users_path, alert: 'Erro ao eliminar utilizador.'
     end
   end
 
@@ -40,9 +60,9 @@ class UsersController < ApplicationController
     @user.password_confirmation = new_password
 
     if @user.save
-      redirect_to users_path, notice: "Senha resetada com sucesso. Nova senha: #{new_password}"
+      redirect_to users_path, notice: "Palavra-passe redefinida com sucesso. Nova palavra-passe: #{new_password}"
     else
-      redirect_to users_path, alert: 'Erro ao resetar senha.'
+      redirect_to users_path, alert: 'Erro ao redefinir palavra-passe.'
     end
   end
 

@@ -14,22 +14,22 @@ class Users::SessionsController < Devise::SessionsController
   # POST /resource/sign_in
   def create
     super do |resource|
-      if resource.persisted? && resource.needs_password_change?
-        # Check if user needs to change password (first login or expired after 90 days)
-        email = resource.email
-        reason = resource.must_change_password? ? 'primeiro acesso' : 'senha expirada (90 dias)'
-        sign_out(resource)
+      next unless resource.persisted? && resource.needs_password_change?
 
-        if resource.privileged_user?
-          # Privileged users (Director, Financial Director, Admin, Super Admin) change password in-app
-          session[:pending_password_change_email] = email
-          session[:password_change_reason] = reason
-          redirect_to change_password_path and return
-        else
-          # Regular users receive email with reset link
-          resource.send_reset_password_instructions
-          redirect_to new_user_session_path, alert: "Por favor, verifique seu email para redefinir sua senha (#{reason})." and return
-        end
+      # Check if user needs to change password (first login or expired after 90 days)
+      email = resource.email
+      reason = resource.must_change_password? ? 'primeiro acesso' : 'palavra-passe expirada (90 dias)'
+      sign_out(resource)
+
+      if resource.privileged_user?
+        # Privileged users (Director, Financial Director, Admin, Super Admin) change password in-app
+        session[:pending_password_change_email] = email
+        session[:password_change_reason] = reason
+        redirect_to(change_password_path) && return
+      else
+        # Regular users receive email with reset link
+        resource.send_reset_password_instructions
+        redirect_to(new_user_session_path, alert: "Por favor, verifique o seu email para redefinir a sua palavra-passe (#{reason}).") && return
       end
     end
   end

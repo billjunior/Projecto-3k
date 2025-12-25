@@ -11,9 +11,9 @@ class PasswordChangesController < ApplicationController
     @reason = session[:password_change_reason] || 'troca obrigatória'
 
     if @user.nil?
-      redirect_to new_user_session_path, alert: 'Sessão expirada. Por favor, faça login novamente.'
+      redirect_to new_user_session_path, alert: 'Sessão expirada. Por favor, inicie sessão novamente.'
     elsif !@user.needs_password_change?
-      redirect_to new_user_session_path, notice: 'Você já alterou sua senha. Por favor, faça login.'
+      redirect_to new_user_session_path, notice: 'Já alterou a sua palavra-passe. Por favor, inicie sessão.'
     end
   end
 
@@ -23,16 +23,16 @@ class PasswordChangesController < ApplicationController
     @reason = session[:password_change_reason] || 'troca obrigatória'
 
     if @user.nil?
-      redirect_to new_user_session_path, alert: 'Sessão expirada. Por favor, faça login novamente.' and return
+      redirect_to new_user_session_path, alert: 'Sessão expirada. Por favor, inicie sessão novamente.' and return
     end
 
     if params[:user][:password].blank?
-      flash.now[:alert] = 'A senha não pode estar em branco.'
+      flash.now[:alert] = 'A palavra-passe não pode estar em branco.'
       render :show and return
     end
 
     if params[:user][:password] != params[:user][:password_confirmation]
-      flash.now[:alert] = 'As senhas não correspondem.'
+      flash.now[:alert] = 'As palavras-passe não correspondem.'
       render :show and return
     end
 
@@ -44,11 +44,11 @@ class PasswordChangesController < ApplicationController
 
       # Sign out privileged users so they login again with new password
       if @user.privileged_user?
-        redirect_to new_user_session_path, notice: 'Senha alterada com sucesso! Por favor, faça login com sua nova senha.'
+        redirect_to new_user_session_path, notice: 'Palavra-passe alterada com sucesso! Por favor, inicie sessão com a sua nova palavra-passe.'
       else
         # Regular users can sign in directly
         sign_in(@user)
-        redirect_to after_sign_in_path_for(@user), notice: 'Senha alterada com sucesso!'
+        redirect_to after_sign_in_path_for(@user), notice: 'Palavra-passe alterada com sucesso!'
       end
     else
       flash.now[:alert] = @user.errors.full_messages.join('<br>').html_safe

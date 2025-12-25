@@ -73,16 +73,18 @@
   }
 
   .signup-form .form-control {
-    border: 2px solid #e0e0e0;
+    border: 3px solid #FFC107;
     border-radius: 10px;
     padding: 12px 18px;
     font-size: 15px;
     transition: all 0.3s ease;
+    background-color: #FFFEF5;
   }
 
   .signup-form .form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.1);
+    border-color: #FFA000;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+    background-color: white;
   }
 
   .signup-form .btn-signup {
@@ -142,16 +144,21 @@
       <%= render "devise/shared/error_messages", resource: resource %>
 
       <div class="mb-3">
+        <%= f.label :name, 'Nome Completo', class: 'form-label' %>
+        <%= f.text_field :name, autofocus: true, autocomplete: "name", class: 'form-control', placeholder: 'Seu nome completo' %>
+      </div>
+
+      <div class="mb-3">
         <%= f.label :email, 'Email', class: 'form-label' %>
-        <%= f.email_field :email, autofocus: true, autocomplete: "email", class: 'form-control', placeholder: 'seu@email.com' %>
+        <%= f.email_field :email, autocomplete: "email", class: 'form-control', placeholder: 'seu@email.com' %>
       </div>
 
       <div class="mb-3">
         <%= f.label :password, 'Senha', class: 'form-label' %>
-        <%= f.password_field :password, autocomplete: "new-password", class: 'form-control', placeholder: '••••••••' %>
-        <% if @minimum_password_length %>
-          <div class="password-hint">Mínimo <%= @minimum_password_length %> caracteres</div>
-        <% end %>
+        <%= f.password_field :password, autocomplete: "new-password", class: 'form-control', placeholder: '••••••••', id: 'password-input' %>
+        <div class="password-hint">
+          Mínimo 12 caracteres, incluindo: maiúscula, minúscula, número e caractere especial
+        </div>
       </div>
 
       <div class="mb-3">

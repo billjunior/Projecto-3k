@@ -1,4 +1,28 @@
 pt:
+  activerecord:
+    errors:
+      messages:
+        record_invalid: 'A validação falhou: %{errors}'
+        restrict_dependent_destroy:
+          has_one: Não é possível eliminar o registo porque existe %{record} dependente
+          has_many: Não é possível eliminar o registo porque existem %{record} dependentes
+    models:
+      user: Utilizador
+    attributes:
+      user:
+        name: Nome
+        email: Email
+        password: Palavra-passe
+        password_confirmation: Confirmação de palavra-passe
+        role: Função
+        department: Departamento
+        admin: Administrador
+        super_admin: Super Administrador
+        active: Ativo
+        confirmed_at: Confirmado em
+        created_at: Criado em
+        updated_at: Atualizado em
+
   date:
     abbr_day_names:
     - dom
