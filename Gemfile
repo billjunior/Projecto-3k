@@ -84,18 +84,28 @@ group :development, :test do
 
   # Load environment variables from .env file
   gem "dotenv-rails"
+
+  # Testing framework
+  gem "rspec-rails", "~> 6.1"
+  gem "factory_bot_rails", "~> 6.4"
+  gem "faker", "~> 3.2"
+  gem "shoulda-matchers", "~> 6.0"
+  gem "database_cleaner-active_record", "~> 2.1"
+  gem "pundit-matchers", "~> 3.1"
 end
 
 group :test do
   gem "pdf-reader"
+  gem "simplecov", require: false
 end
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
 
-  # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
-  # gem "rack-mini-profiler"
+  # Performance monitoring
+  gem "rack-mini-profiler"
+  gem "bullet"
 
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
