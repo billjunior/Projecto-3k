@@ -1,0 +1,34 @@
+<div class="email-header">
+  <h1>Novo Orçamento</h1>
+  <p>Aguardando Sua Aprovação</p>
+</div>
+
+<div class="email-body">
+  <p>Prezado Gestor,</p>
+
+  <p>Um novo orçamento foi submetido para aprovação e aguarda sua análise:</p>
+
+  <div class="info-box">
+    <p><strong>Número do Orçamento:</strong> <%= @estimate.estimate_number %></p>
+    <p><strong>Cliente:</strong> <%= @customer.name %></p>
+    <p><strong>Valor Total:</strong> <%= number_to_currency(@estimate.total_value, unit: "AOA", separator: ",", delimiter: ".") %></p>
+    <p><strong>Data de Criação:</strong> <%= @estimate.created_at.strftime('%d/%m/%Y') %></p>
+    <% if @estimate.valid_until %>
+      <p><strong>Válido até:</strong> <%= @estimate.valid_until.strftime('%d/%m/%Y') %></p>
+    <% end %>
+  </div>
+
+  <p>Revise os detalhes do orçamento no documento em anexo e tome a ação apropriada.</p>
+
+  <div class="button-container">
+    <%= link_to "Ver Orçamento no Sistema", estimate_url(@estimate), class: "email-button" %>
+  </div>
+
+  <p>Atenciosamente,<br>
+  <strong><%= @company_settings&.company_name || "Sistema CRM 3K" %></strong></p>
+</div>
+
+<div class="email-footer">
+  <p>Este é um email automático. Não responda a esta mensagem.</p>
+  <p>Gerado em <%= Time.current.strftime('%d/%m/%Y às %H:%M') %></p>
+</div>

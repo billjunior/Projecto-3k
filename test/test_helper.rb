@@ -9,6 +9,9 @@ class ActiveSupport::TestCase
   # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
   fixtures :all
 
+  # Include ActiveJob test helpers
+  include ActiveJob::TestHelper
+
   # Add more helper methods to be used by all tests here...
 
   # Helper to set current tenant for multi-tenancy tests

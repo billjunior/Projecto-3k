@@ -16,7 +16,7 @@ class Estimate < ApplicationRecord
 
   # Callbacks
   before_validation :generate_estimate_number, on: :create
-  before_save :calculate_total
+  before_validation :calculate_total
 
   # Scopes
   scope :rascunhos, -> { where(status: 'rascunho') }
@@ -64,6 +64,8 @@ class Estimate < ApplicationRecord
   end
 
   def calculate_total
-    self.total_value = estimate_items.sum(&:subtotal)
+    # Calcula o total a partir dos items (incluindo nested attributes não salvos)
+    items = estimate_items.reject(&:marked_for_destruction?)
+    self.total_value = items.sum { |item| (item.quantity.to_f || 0) * (item.unit_price.to_f || 0) }
   end
 end

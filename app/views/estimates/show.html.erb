@@ -45,6 +45,26 @@
           <i class="bi bi-arrow-right-circle"></i> Criar Trabalho
         <% end %>
       <% end %>
+
+      <!-- Botões de Comunicação -->
+      <div class="mt-3 d-flex gap-2">
+        <!-- PDF Download -->
+        <%= link_to pdf_estimate_path(@estimate), target: '_blank', class: 'btn btn-outline-secondary' do %>
+          <i class="bi bi-file-pdf"></i> Baixar PDF
+        <% end %>
+
+        <!-- WhatsApp (apenas se cliente tiver telefone e orçamento aprovado) -->
+        <% if @estimate.customer.phone.present? && @estimate.status == 'aprovado' %>
+          <%
+            whatsapp_message = "Olá #{@estimate.customer.name}! Seu orçamento #{@estimate.estimate_number} foi aprovado. Valor: #{number_to_currency(@estimate.total_value, unit: 'AOA')}. Entre em contato para mais detalhes."
+            phone_clean = @estimate.customer.phone.gsub(/\D/, '')  # Remove caracteres não numéricos
+            whatsapp_url = "https://wa.me/#{phone_clean}?text=#{CGI.escape(whatsapp_message)}"
+          %>
+          <%= link_to whatsapp_url, target: '_blank', class: 'btn btn-success' do %>
+            <i class="bi bi-whatsapp"></i> WhatsApp
+          <% end %>
+        <% end %>
+      </div>
     </div>
   </div>
 

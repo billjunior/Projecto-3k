@@ -17,7 +17,7 @@
       :root {
         --sidebar-bg: #000000;
         --sidebar-hover: #2a2a2a;
-        --sidebar-active: #ff6b35;
+        --sidebar-active: #fbbf24;
         --main-bg: #0f1829;
         --content-bg: #1a2332;
         --border-light: #2d3748;
@@ -125,8 +125,9 @@
 
       .app-sidebar .sidebar-menu a.active {
         background-color: var(--sidebar-active);
-        color: white;
-        border-left: 4px solid #ff9966;
+        color: #000000;
+        border-left: 4px solid #f59e0b;
+        font-weight: 600;
       }
 
       .app-sidebar .sidebar-submenu {
@@ -139,6 +140,11 @@
       .app-sidebar .sidebar-submenu a {
         padding-left: 52px;
         font-size: 13px;
+      }
+
+      .app-sidebar .sidebar-submenu a.active {
+        background-color: var(--sidebar-active);
+        color: #000000;
       }
 
       /* Main Content */
@@ -490,7 +496,7 @@
       <!-- Sidebar -->
       <aside class="app-sidebar">
         <%= link_to root_path, class: 'logo' do %>
-          CRM 3K
+          <%= tenant_branding(size: :small) %>
         <% end %>
 
         <ul class="sidebar-menu">
@@ -611,6 +617,9 @@
               <% if current_user.super_admin? %>
                 <li><%= link_to admin_tenants_path, class: "dropdown-item text-danger fw-bold" do %>
                   <i class="bi bi-shield-fill-check"></i> Admin Panel
+                <% end %></li>
+                <li><%= link_to admin_subscriptions_path, class: "dropdown-item text-danger" do %>
+                  <i class="bi bi-credit-card"></i> Gestão de Subscrições
                 <% end %></li>
                 <li><hr class="dropdown-divider"></li>
               <% end %>

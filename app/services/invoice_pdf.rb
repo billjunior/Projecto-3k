@@ -1,6 +1,9 @@
 require 'prawn'
 require 'prawn/table'
 
+# Suppress Prawn internationalization warning
+Prawn::Fonts::AFM.hide_m17n_warning = true
+
 class InvoicePdf
   def initialize(invoice)
     @invoice = invoice

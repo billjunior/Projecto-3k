@@ -214,4 +214,191 @@ class TenantTest < ActiveSupport::TestCase
     @tenant.suspended!
     assert @tenant.suspended?
   end
+
+  # New Subscription Methods Tests
+  test "subscription_active? returns true for active subscription with future expiration" do
+    @tenant.update!(
+      subscription_status: 'active',
+      subscription_expires_at: 30.days.from_now
+    )
+    assert @tenant.subscription_active?
+  end
+
+  test "subscription_active? returns false for expired subscription" do
+    @tenant.update!(
+      subscription_status: 'active',
+      subscription_expires_at: 1.day.ago
+    )
+    assert_not @tenant.subscription_active?
+  end
+
+  test "subscription_active? returns false when subscription_expires_at is nil" do
+    @tenant.update!(
+      subscription_status: 'active',
+      subscription_expires_at: nil
+    )
+    assert_not @tenant.subscription_active?
+  end
+
+  test "in_trial? returns true for trial with future expiration" do
+    @tenant.update!(
+      subscription_status: 'trial',
+      subscription_expires_at: 15.days.from_now
+    )
+    assert @tenant.in_trial?
+  end
+
+  test "in_trial? returns false for trial with past expiration" do
+    @tenant.update!(
+      subscription_status: 'trial',
+      subscription_expires_at: 1.day.ago
+    )
+    assert_not @tenant.in_trial?
+  end
+
+  test "can_access? returns true for active subscription" do
+    @tenant.update!(
+      subscription_status: 'active',
+      subscription_expires_at: 30.days.from_now
+    )
+    assert @tenant.can_access?
+  end
+
+  test "can_access? returns true for trial subscription" do
+    @tenant.update!(
+      subscription_status: 'trial',
+      subscription_expires_at: 15.days.from_now
+    )
+    assert @tenant.can_access?
+  end
+
+  test "can_access? returns false for suspended subscription" do
+    @tenant.update!(
+      subscription_status: 'suspended',
+      subscription_expires_at: 30.days.from_now
+    )
+    assert_not @tenant.can_access?
+  end
+
+  test "can_access? returns false for expired subscription" do
+    @tenant.update!(
+      subscription_status: 'expired',
+      subscription_expires_at: 1.day.ago
+    )
+    assert_not @tenant.can_access?
+  end
+
+  test "suspended? returns true when subscription_status is suspended" do
+    @tenant.update!(subscription_status: 'suspended')
+    assert @tenant.suspended?
+  end
+
+  test "days_remaining returns correct number of days" do
+    @tenant.update!(subscription_expires_at: 10.days.from_now)
+    # Allow for rounding (9-10 days is acceptable)
+    assert_operator @tenant.days_remaining, :>=, 9
+    assert_operator @tenant.days_remaining, :<=, 10
+  end
+
+  test "days_remaining returns negative for expired subscription" do
+    @tenant.update!(subscription_expires_at: 5.days.ago)
+    # Should be negative for expired subscriptions
+    assert_operator @tenant.days_remaining, :<, 0
+  end
+
+  test "expiring_soon? with custom threshold" do
+    @tenant.update!(
+      subscription_status: 'active',
+      subscription_expires_at: 5.days.from_now
+    )
+    assert @tenant.expiring_soon?(7)
+    assert_not @tenant.expiring_soon?(3)
+  end
+
+  test "renew_subscription! extends expiration when not expired" do
+    original_expiration = 10.days.from_now
+    @tenant.update!(
+      subscription_status: 'trial',
+      subscription_expires_at: original_expiration
+    )
+
+    @tenant.renew_subscription!(1)
+
+    assert_equal 'active', @tenant.subscription_status
+    assert @tenant.subscription_expires_at > original_expiration
+    assert_not_nil @tenant.last_payment_date
+  end
+
+  test "renew_subscription! sets expiration from now when expired" do
+    @tenant.update!(
+      subscription_status: 'expired',
+      subscription_expires_at: 5.days.ago
+    )
+
+    @tenant.renew_subscription!(2)
+
+    assert_equal 'active', @tenant.subscription_status
+    assert @tenant.subscription_expires_at > Time.current
+  end
+
+  test "expire_subscription! sets status to expired" do
+    @tenant.update!(subscription_status: 'active')
+    @tenant.expire_subscription!
+
+    assert_equal 'expired', @tenant.subscription_status
+  end
+
+  test "suspend_subscription! sets status to suspended" do
+    @tenant.update!(subscription_status: 'active')
+    @tenant.suspend_subscription!
+
+    assert_equal 'suspended', @tenant.subscription_status
+  end
+
+  test "activate_subscription! sets to active when not expired" do
+    @tenant.update!(
+      subscription_status: 'suspended',
+      subscription_expires_at: 30.days.from_now
+    )
+
+    @tenant.activate_subscription!
+
+    assert_equal 'active', @tenant.subscription_status
+  end
+
+  test "activate_subscription! sets to expired when past expiration" do
+    @tenant.update!(
+      subscription_status: 'suspended',
+      subscription_expires_at: 5.days.ago
+    )
+
+    @tenant.activate_subscription!
+
+    assert_equal 'expired', @tenant.subscription_status
+  end
+
+  test "plan_name returns formatted plan names" do
+    @tenant.update!(subscription_plan: 'monthly')
+    assert_equal 'Mensal', @tenant.plan_name
+
+    @tenant.update!(subscription_plan: 'quarterly')
+    assert_equal 'Trimestral', @tenant.plan_name
+
+    @tenant.update!(subscription_plan: 'yearly')
+    assert_equal 'Anual', @tenant.plan_name
+  end
+
+  test "subscription_badge_class returns correct CSS classes" do
+    @tenant.update!(subscription_status: 'active')
+    assert_equal 'bg-success', @tenant.subscription_badge_class
+
+    @tenant.update!(subscription_status: 'trial')
+    assert_equal 'bg-info', @tenant.subscription_badge_class
+
+    @tenant.update!(subscription_status: 'expired')
+    assert_equal 'bg-danger', @tenant.subscription_badge_class
+
+    @tenant.update!(subscription_status: 'suspended')
+    assert_equal 'bg-warning', @tenant.subscription_badge_class
+  end
 end

@@ -37,4 +37,20 @@ class EstimatePolicy < ApplicationPolicy
   def manage?
     user.super_admin? || user.admin?
   end
+
+  def pdf?
+    show?  # Anyone who can view the estimate can see its PDF
+  end
+
+  def submit_for_approval?
+    create? || update?  # Anyone who can create/update can submit
+  end
+
+  def reject?
+    approve?  # Same permissions as approve
+  end
+
+  def convert_to_job?
+    approve?  # Only admins can convert to job
+  end
 end

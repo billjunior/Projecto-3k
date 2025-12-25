@@ -106,6 +106,8 @@
     </div>
   </div>
 
+  <%= form.hidden_field :total_value, id: 'total_value_field' %>
+
   <div class="d-flex gap-2">
     <%= form.submit 'Guardar Orçamento', class: 'btn btn-primary' %>
     <%= link_to 'Cancelar', estimates_path, class: 'btn btn-secondary' %>
@@ -114,22 +116,47 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  let itemIndex = document.querySelectorAll('.estimate-item').length;
+
   // Calculate subtotals and total
   function calculateTotals() {
     let grandTotal = 0;
 
     document.querySelectorAll('.estimate-item').forEach(item => {
-      if (item.querySelector('.item-destroy').value === 'true') return;
+      const destroyField = item.querySelector('.item-destroy');
+      if (!destroyField || destroyField.value === 'true') return;
 
-      const quantity = parseFloat(item.querySelector('.quantity-input').value) || 0;
-      const price = parseFloat(item.querySelector('.price-input').value) || 0;
+      const quantityInput = item.querySelector('.quantity-input');
+      const priceInput = item.querySelector('.price-input');
+      const subtotalInput = item.querySelector('.subtotal-input');
+
+      const quantity = parseFloat(quantityInput?.value) || 0;
+      const price = parseFloat(priceInput?.value) || 0;
       const subtotal = quantity * price;
 
-      item.querySelector('.subtotal-input').value = subtotal.toFixed(2);
+      if (subtotalInput) {
+        subtotalInput.value = subtotal.toFixed(2);
+      }
       grandTotal += subtotal;
     });
 
-    document.getElementById('grand-total').textContent = grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' AOA';
+    console.log('Grand Total calculated:', grandTotal);
+
+    const grandTotalElement = document.getElementById('grand-total');
+    const totalValueField = document.getElementById('total_value_field');
+
+    if (grandTotalElement) {
+      grandTotalElement.textContent = 'AOA ' + grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    } else {
+      console.error('Element grand-total not found');
+    }
+
+    if (totalValueField) {
+      totalValueField.value = grandTotal.toFixed(2);
+      console.log('Total value field updated:', totalValueField.value);
+    } else {
+      console.error('Element total_value_field not found');
+    }
   }
 
   // Add event listeners to quantity and price inputs
@@ -147,6 +174,70 @@ document.addEventListener('DOMContentLoaded', function() {
       item.style.display = 'none';
       calculateTotals();
     }
+  });
+
+  // Get product options for new items
+  function getProductOptions() {
+    const firstSelect = document.querySelector('.product-select');
+    if (!firstSelect) {
+      // If no existing select, get products from data attribute or create empty
+      return '<option value="">Selecione um produto</option>';
+    }
+    return Array.from(firstSelect.options).map(opt =>
+      `<option value="${opt.value}">${opt.text}</option>`
+    ).join('');
+  }
+
+  // Add new item
+  document.getElementById('add-item').addEventListener('click', function() {
+    const container = document.getElementById('estimate-items');
+    const newItem = document.createElement('div');
+    newItem.className = 'estimate-item border rounded p-3 mb-3';
+    newItem.innerHTML = `
+      <input type="hidden" name="estimate[estimate_items_attributes][${itemIndex}][_destroy]" value="false" class="item-destroy">
+
+      <div class="row">
+        <div class="col-md-5">
+          <div class="mb-2">
+            <label class="form-label">Produto</label>
+            <select name="estimate[estimate_items_attributes][${itemIndex}][product_id]" class="form-select product-select" required>
+              ${getProductOptions()}
+            </select>
+          </div>
+        </div>
+
+        <div class="col-md-2">
+          <div class="mb-2">
+            <label class="form-label">Quantidade</label>
+            <input type="number" name="estimate[estimate_items_attributes][${itemIndex}][quantity]" class="form-control quantity-input" min="1" step="1" value="1" required>
+          </div>
+        </div>
+
+        <div class="col-md-2">
+          <div class="mb-2">
+            <label class="form-label">Preço Unit.</label>
+            <input type="number" name="estimate[estimate_items_attributes][${itemIndex}][unit_price]" class="form-control price-input" step="0.01" min="0" value="0" required>
+          </div>
+        </div>
+
+        <div class="col-md-2">
+          <div class="mb-2">
+            <label class="form-label">Subtotal</label>
+            <input type="number" name="estimate[estimate_items_attributes][${itemIndex}][subtotal]" class="form-control subtotal-input" step="0.01" value="0" readonly>
+          </div>
+        </div>
+
+        <div class="col-md-1 d-flex align-items-end">
+          <button type="button" class="btn btn-danger mb-2 remove-item">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(newItem);
+    itemIndex++;
+    calculateTotals();
   });
 
   // Initial calculation

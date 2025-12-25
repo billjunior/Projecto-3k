@@ -1,15 +1,15 @@
 class EstimatesController < ApplicationController
-  before_action :set_estimate, only: [:show, :edit, :update, :destroy, :submit_for_approval, :approve, :reject, :convert_to_job]
+  before_action :set_estimate, only: [:show, :edit, :update, :destroy, :submit_for_approval, :approve, :reject, :convert_to_job, :pdf]
   before_action :check_manager_role, only: [:approve, :reject]
 
   def index
     # Pundit: Use policy_scope for index action
-    @draft_estimates = policy_scope(Estimate).rascunhos.includes(:customer).recent
-    @pending_estimates = policy_scope(Estimate).pendentes.includes(:customer).recent
-    @approved_estimates = policy_scope(Estimate).aprovados.includes(:customer).recent.limit(10)
+    @draft_estimates = policy_scope(Estimate).rascunhos.includes(:customer).recent.page(params[:draft_page]).per(10)
+    @pending_estimates = policy_scope(Estimate).pendentes.includes(:customer).recent.page(params[:pending_page]).per(10)
+    @approved_estimates = policy_scope(Estimate).aprovados.includes(:customer).recent.page(params[:approved_page]).per(10)
 
     # Count for notification badge
-    @pending_count = @pending_estimates.count
+    @pending_count = policy_scope(Estimate).pendentes.count
   end
 
   def show
@@ -79,24 +79,42 @@ class EstimatesController < ApplicationController
   end
 
   def submit_for_approval
+    authorize @estimate
     if @estimate.can_submit_for_approval?
       @estimate.update(status: 'pendente_aprovacao')
-      redirect_to @estimate, notice: 'Orçamento enviado para aprovação do gestor.'
+
+      # Send emails to managers
+      company_settings = @estimate.tenant.company_setting
+      managers = company_settings.missing_items_recipients  # Returns [director_general_email, financial_director_email]
+
+      managers.each do |email|
+        EstimateMailer.estimate_for_approval(@estimate, email).deliver_later
+      end
+
+      redirect_to @estimate, notice: 'Orçamento enviado para aprovação. Gestores notificados por email.'
     else
       redirect_to @estimate, alert: 'Não é possível enviar este orçamento para aprovação.'
     end
   end
 
   def approve
+    authorize @estimate
     if @estimate.can_approve?
       @estimate.update(status: 'aprovado', approved_by: current_user.email, approved_at: Time.current)
-      redirect_to @estimate, notice: 'Orçamento aprovado com sucesso.'
+
+      # Send email to customer
+      if @estimate.customer.email.present?
+        EstimateMailer.estimate_approved(@estimate).deliver_later
+      end
+
+      redirect_to @estimate, notice: 'Orçamento aprovado com sucesso. Email enviado ao cliente.'
     else
       redirect_to @estimate, alert: 'Este orçamento não pode ser aprovado no momento.'
     end
   end
 
   def reject
+    authorize @estimate
     if @estimate.can_approve?
       @estimate.update(status: 'recusado', approved_by: current_user.email, approved_at: Time.current)
       redirect_to @estimate, notice: 'Orçamento recusado.'
@@ -106,12 +124,23 @@ class EstimatesController < ApplicationController
   end
 
   def convert_to_job
+    authorize @estimate
     begin
       job = @estimate.convert_to_job!
       redirect_to job, notice: 'Trabalho criado com sucesso a partir do orçamento.'
     rescue => e
       redirect_to @estimate, alert: "Erro ao converter: #{e.message}"
     end
+  end
+
+  def pdf
+    authorize @estimate
+
+    pdf = EstimatePdf.new(@estimate).generate
+    send_data pdf,
+              filename: "orcamento_#{@estimate.estimate_number}.pdf",
+              type: 'application/pdf',
+              disposition: 'inline'
   end
 
   private

@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
   before_action :authenticate_user!
   before_action :set_current_user
   before_action :set_current_tenant
-  before_action :check_subscription_status
+  before_action :check_tenant_subscription
   before_action :check_crm_access
   before_action :configure_permitted_parameters, if: :devise_controller?
 
@@ -31,14 +31,19 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def check_subscription_status
+  def check_tenant_subscription
     return if devise_controller? # Não verificar em login/logout
     return unless current_user
     return if current_user.super_admin? # Super admins não são bloqueados
     return if controller_name == 'subscriptions' # Permitir acesso à página de expiração
+    return if controller_path == 'admin/subscriptions' # Permitir admin gerenciar subscrições
 
-    if current_user.tenant && current_user.tenant.expired?
-      redirect_to subscription_expired_path, alert: 'Subscrição expirada'
+    tenant = current_user.tenant
+
+    if tenant && !tenant.can_access?
+      redirect_to expired_subscription_path, alert: 'Sua subscrição expirou ou foi suspensa. Renove para continuar usando o sistema.'
+    elsif tenant && tenant.expiring_soon?(7)
+      flash.now[:warning] = "Sua subscrição expira em #{tenant.days_remaining} dias. Renove agora para evitar interrupções!"
     end
   end
 

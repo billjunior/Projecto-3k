@@ -1,0 +1,23 @@
+NOVO ORÇAMENTO AGUARDANDO SUA APROVAÇÃO
+========================================
+
+Prezado Gestor,
+
+Um novo orçamento foi submetido para aprovação e aguarda sua análise:
+
+Número do Orçamento: <%= @estimate.estimate_number %>
+Cliente: <%= @customer.name %>
+Valor Total: <%= number_to_currency(@estimate.total_value, unit: "AOA", separator: ",", delimiter: ".") %>
+Data de Criação: <%= @estimate.created_at.strftime('%d/%m/%Y') %>
+<% if @estimate.valid_until %>Válido até: <%= @estimate.valid_until.strftime('%d/%m/%Y') %><% end %>
+
+Revise os detalhes do orçamento no documento em anexo e tome a ação apropriada.
+
+Acesse o sistema: <%= estimate_url(@estimate) %>
+
+Atenciosamente,
+<%= @company_settings&.company_name || "Sistema CRM 3K" %>
+
+---
+Este é um email automático. Não responda a esta mensagem.
+Gerado em <%= Time.current.strftime('%d/%m/%Y às %H:%M') %>

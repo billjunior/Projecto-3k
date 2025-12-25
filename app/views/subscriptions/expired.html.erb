@@ -1,37 +1,123 @@
 <div class="container mt-5">
   <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-8 col-lg-6">
       <div class="card border-danger shadow">
-        <div class="card-header bg-danger text-white">
-          <h3 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Subscrição Expirada</h3>
+        <div class="card-header bg-danger text-white text-center py-4">
+          <% if @tenant.company_setting&.logo&.attached? %>
+            <%= image_tag @tenant.company_setting.logo, class: 'mb-3', style: 'max-height: 80px; max-width: 200px; filter: brightness(0) invert(1);' %>
+          <% else %>
+            <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+          <% end %>
+          <h2 class="mt-3 mb-0">Subscrição <%= @tenant.subscription_status == 'suspended' ? 'Suspensa' : 'Expirada' %></h2>
         </div>
-        <div class="card-body">
-          <div class="alert alert-warning">
-            <h5><i class="bi bi-calendar-x"></i> A sua subscrição expirou</h5>
-            <% if current_user&.tenant %>
-              <p class="mb-0">
-                <strong>Empresa:</strong> <%= current_user.tenant.name %><br>
-                <strong>Data de Expiração:</strong> <%= current_user.tenant.subscription_end&.strftime('%d/%m/%Y') %>
+
+        <div class="card-body text-center p-5">
+          <% if @tenant.subscription_status == 'suspended' %>
+            <p class="lead mb-4">
+              A subscrição da empresa <strong><%= @tenant.name %></strong> foi suspensa.
+            </p>
+            <div class="alert alert-warning">
+              <i class="bi bi-info-circle"></i> Entre em contato com o administrador do sistema para mais informações.
+            </div>
+          <% else %>
+            <p class="lead mb-4">
+              A subscrição da empresa <strong><%= @tenant.name %></strong> expirou em
+              <strong><%= @tenant.subscription_expires_at&.strftime('%d/%m/%Y') %></strong>
+            </p>
+
+            <div class="alert alert-success mb-4">
+              <i class="bi bi-shield-check"></i>
+              <strong>Seus dados estão seguros!</strong><br>
+              Todas as informações estão preservadas. Renove a subscrição para continuar usando o sistema.
+            </div>
+
+            <h4 class="mb-4">Planos Disponíveis</h4>
+
+            <div class="row g-3">
+              <!-- Plano Mensal -->
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <h5 class="card-title">Mensal</h5>
+                    <div class="display-6 text-primary mb-3">50.000 AOA</div>
+                    <p class="text-muted">por mês</p>
+                    <ul class="list-unstyled text-start">
+                      <li><i class="bi bi-check-circle text-success"></i> Acesso completo ao sistema</li>
+                      <li><i class="bi bi-check-circle text-success"></i> Suporte por email</li>
+                      <li><i class="bi bi-check-circle text-success"></i> Atualizações incluídas</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Plano Anual -->
+              <div class="col-md-6">
+                <div class="card h-100 border-success border-2">
+                  <div class="card-header bg-success text-white text-center">
+                    <strong>MAIS POPULAR</strong>
+                  </div>
+                  <div class="card-body">
+                    <h5 class="card-title">Anual</h5>
+                    <div class="display-6 text-success mb-1">480.000 AOA</div>
+                    <p class="text-muted mb-3">
+                      <small><s>600.000 AOA</s></small><br>
+                      <span class="badge bg-success">Economize 20%</span>
+                    </p>
+                    <p class="text-muted">40.000 AOA/mês</p>
+                    <ul class="list-unstyled text-start">
+                      <li><i class="bi bi-check-circle text-success"></i> Tudo do plano mensal</li>
+                      <li><i class="bi bi-check-circle text-success"></i> 2 meses grátis</li>
+                      <li><i class="bi bi-check-circle text-success"></i> Suporte prioritário</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <p class="text-muted">
+                <small>
+                  <strong>Outros planos:</strong><br>
+                  Trimestral (3 meses): 135.000 AOA - Economize 10%<br>
+                  Semestral (6 meses): 255.000 AOA - Economize 15%
+                </small>
               </p>
+            </div>
+          <% end %>
+
+          <hr class="my-4">
+
+          <h5 class="mb-3">Como Renovar?</h5>
+          <div class="d-grid gap-2 mb-3">
+            <a href="https://wa.me/244XXXXXXXXX?text=Olá! Gostaria de renovar a subscrição do CRM 3K para a empresa <%= CGI.escape(@tenant.name) %>"
+               target="_blank"
+               class="btn btn-success btn-lg">
+              <i class="bi bi-whatsapp"></i> Contactar via WhatsApp
+            </a>
+
+            <% if @tenant.company_setting&.email.present? %>
+              <a href="mailto:<%= @tenant.company_setting.email %>?subject=Renovação de Subscrição CRM 3K&body=Empresa: <%= @tenant.name %>"
+                 class="btn btn-outline-primary">
+                <i class="bi bi-envelope"></i> Enviar Email
+              </a>
             <% end %>
           </div>
 
-          <h5 class="mt-4">O que aconteceu?</h5>
-          <p>A subscrição da sua empresa no CRM 3K expirou. Todas as funcionalidades do sistema estão temporariamente desativadas.</p>
-
-          <h5 class="mt-4">Como renovar?</h5>
-          <p>Para renovar a sua subscrição e recuperar o acesso ao sistema, por favor:</p>
-          <ul>
-            <li>Contacte o administrador do sistema</li>
-            <li>Ou envie um email para: <strong>suporte@crm3k.com</strong></li>
-            <li>Telefone: <strong>+244 900 000 000</strong></li>
-          </ul>
-
-          <div class="mt-4">
-            <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: 'btn btn-secondary' do %>
-              <i class="bi bi-box-arrow-right"></i> Sair do Sistema
-            <% end %>
+          <div class="text-muted small">
+            <p class="mb-2">
+              <i class="bi bi-telephone"></i> Telefone: +244 XXX XXX XXX<br>
+              <i class="bi bi-envelope"></i> Email: suporte@crm3k.ao
+            </p>
+            <p class="mb-0">
+              Horário de atendimento: Segunda a Sexta, 8h às 18h
+            </p>
           </div>
+        </div>
+
+        <div class="card-footer text-muted text-center">
+          <small>
+            <%= link_to 'Sair', destroy_user_session_path, data: { turbo_method: :delete }, class: 'text-decoration-none' %>
+          </small>
         </div>
       </div>
     </div>

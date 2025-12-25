@@ -1,0 +1,28 @@
+ORÇAMENTO APROVADO!
+===================
+
+Prezado <%= @customer.name %>,
+
+Temos o prazer de informar que seu orçamento foi APROVADO e agora está pronto para prosseguimento.
+
+Número do Orçamento: <%= @estimate.estimate_number %>
+Valor Total: <%= number_to_currency(@estimate.total_value, unit: "AOA", separator: ",", delimiter: ".") %>
+<% if @estimate.approved_at %>Aprovado em: <%= @estimate.approved_at.strftime('%d/%m/%Y às %H:%M') %>
+<% end %><% if @estimate.approved_by.present? %>Aprovado por: <%= @estimate.approved_by %>
+<% end %><% if @estimate.valid_until %>Válido até: <%= @estimate.valid_until.strftime('%d/%m/%Y') %>
+<% end %>
+
+O documento completo está anexado para sua referência.
+
+Acesse o orçamento: <%= estimate_url(@estimate) %>
+
+Se tiver alguma dúvida ou precisar de mais informações, entre em contato connosco.
+
+Atenciosamente,
+<%= @company_settings&.company_name || "Sistema CRM 3K" %>
+
+---
+<% if @company_settings&.email.present? || @company_settings&.phone.present? %>
+Contato: <%= @company_settings.email if @company_settings.email.present? %><%= " | Telefone: #{@company_settings.phone}" if @company_settings.phone.present? %>
+<% end %>
+Gerado em <%= Time.current.strftime('%d/%m/%Y às %H:%M') %>
