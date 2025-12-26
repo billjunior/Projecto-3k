@@ -8,14 +8,24 @@ class OpportunitiesController < ApplicationController
     @opportunities = @opportunities.open if params[:status] == 'open'
     @opportunities = @opportunities.closed if params[:status] == 'closed'
 
-    # Stats para dashboard
+    # Performance fix: Calculate all stats in a single query using CASE WHEN
+    base_scope = policy_scope(Opportunity)
+    stats_query = base_scope.select(
+      "COUNT(*) as total_count",
+      "COUNT(*) FILTER (WHERE stage IN (0,1,2,3)) as open_count",
+      "COUNT(*) FILTER (WHERE stage = 4) as won_count",
+      "COUNT(*) FILTER (WHERE stage = 5) as lost_count",
+      "SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) ELSE 0 END) as total_value",
+      "SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) * COALESCE(probability, 0) / 100.0 ELSE 0 END) as weighted_value"
+    ).first
+
     @stats = {
-      total: policy_scope(Opportunity).count,
-      open: policy_scope(Opportunity).open.count,
-      won: policy_scope(Opportunity).won.count,
-      lost: policy_scope(Opportunity).lost.count,
-      total_value: policy_scope(Opportunity).open.sum(:value) || 0,
-      weighted_value: policy_scope(Opportunity).open.sum('value * probability / 100.0') || 0
+      total: stats_query.total_count || 0,
+      open: stats_query.open_count || 0,
+      won: stats_query.won_count || 0,
+      lost: stats_query.lost_count || 0,
+      total_value: stats_query.total_value || 0,
+      weighted_value: stats_query.weighted_value || 0
     }
   end
 
@@ -37,20 +47,44 @@ class OpportunitiesController < ApplicationController
       @opportunities_by_stage[opp.stage.to_sym] << opp
     end
 
-    # Calculate total value per stage
+    # Performance fix: Calculate stage values in SQL instead of Ruby
+    stage_values_query = policy_scope(Opportunity)
+                          .group(:stage)
+                          .sum(:value)
+
+    # Map numeric stages to symbol keys
+    stage_mapping = {
+      0 => :new_opportunity,
+      1 => :qualified,
+      2 => :proposal,
+      3 => :negotiation,
+      4 => :won,
+      5 => :lost
+    }
+
     @stage_values = {}
-    @opportunities_by_stage.each do |stage, opps|
-      @stage_values[stage] = opps.sum { |o| o.value || 0 }
+    stage_mapping.each do |numeric_stage, symbol_stage|
+      @stage_values[symbol_stage] = stage_values_query[numeric_stage] || 0
     end
 
-    # Stats para dashboard
+    # Performance fix: Calculate all stats in a single query
+    base_scope = policy_scope(Opportunity)
+    stats_query = base_scope.select(
+      "COUNT(*) as total_count",
+      "COUNT(*) FILTER (WHERE stage IN (0,1,2,3)) as open_count",
+      "COUNT(*) FILTER (WHERE stage = 4) as won_count",
+      "COUNT(*) FILTER (WHERE stage = 5) as lost_count",
+      "SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) ELSE 0 END) as total_value",
+      "SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) * COALESCE(probability, 0) / 100.0 ELSE 0 END) as weighted_value"
+    ).first
+
     @stats = {
-      total: policy_scope(Opportunity).count,
-      open: policy_scope(Opportunity).open.count,
-      won: policy_scope(Opportunity).won.count,
-      lost: policy_scope(Opportunity).lost.count,
-      total_value: policy_scope(Opportunity).open.sum(:value) || 0,
-      weighted_value: policy_scope(Opportunity).open.sum('value * probability / 100.0') || 0
+      total: stats_query.total_count || 0,
+      open: stats_query.open_count || 0,
+      won: stats_query.won_count || 0,
+      lost: stats_query.lost_count || 0,
+      total_value: stats_query.total_value || 0,
+      weighted_value: stats_query.weighted_value || 0
     }
   end
 

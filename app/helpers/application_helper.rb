@@ -13,6 +13,16 @@ module ApplicationHelper
     (1..12).map { |m| [MESES_PT[m], m] }
   end
 
+  # Helper to get cached company settings
+  # Performance fix: Cache company settings to avoid repeated DB queries
+  def cached_company_settings
+    return nil unless user_signed_in?
+
+    Rails.cache.fetch("tenant_#{current_user.tenant_id}_company_settings", expires_in: 1.hour) do
+      current_user.tenant.company_setting
+    end
+  end
+
   # Helper para exibir o logotipo do tenant
   # Opções:
   #   - size: :small (40px), :medium (80px), :large (120px) ou string customizada
@@ -22,7 +32,7 @@ module ApplicationHelper
   def tenant_logo(options = {})
     return nil unless user_signed_in?
 
-    company_setting = current_user.tenant.company_setting
+    company_setting = cached_company_settings
     return options[:fallback] || 'CRM 3K' unless company_setting&.logo&.attached?
 
     size = case options[:size]
@@ -45,10 +55,10 @@ module ApplicationHelper
 
   # Helper para exibir logo ou nome da empresa
   def tenant_branding(options = {})
-    if user_signed_in? && current_user.tenant.company_setting&.logo&.attached?
+    if user_signed_in? && cached_company_settings&.logo&.attached?
       tenant_logo(options)
     else
-      company_name = user_signed_in? ? current_user.tenant.company_setting&.company_name : nil
+      company_name = user_signed_in? ? cached_company_settings&.company_name : nil
       company_name || options[:fallback] || 'CRM 3K'
     end
   end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_24_213848) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_26_095253) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -91,6 +91,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_24_213848) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "tenant_id"
+    t.index ["tenant_id", "customer_type"], name: "index_customers_on_tenant_and_type"
     t.index ["tenant_id"], name: "index_customers_on_tenant_id"
   end
 
@@ -142,6 +143,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_24_213848) do
     t.index ["customer_id"], name: "index_estimates_on_customer_id"
     t.index ["estimate_number"], name: "index_estimates_on_estimate_number", unique: true
     t.index ["status"], name: "index_estimates_on_status"
+    t.index ["tenant_id", "status"], name: "index_estimates_on_tenant_and_status"
     t.index ["tenant_id"], name: "index_estimates_on_tenant_id"
   end
 
@@ -210,6 +212,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_24_213848) do
     t.index ["invoice_number"], name: "index_invoices_on_invoice_number", unique: true
     t.index ["source_type", "source_id"], name: "index_invoices_on_source_type_and_source_id"
     t.index ["status"], name: "index_invoices_on_status"
+    t.index ["tenant_id", "status"], name: "index_invoices_on_tenant_and_status"
     t.index ["tenant_id"], name: "index_invoices_on_tenant_id"
   end
 
@@ -264,6 +267,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_24_213848) do
     t.index ["priority"], name: "index_jobs_on_priority"
     t.index ["source_estimate_id"], name: "index_jobs_on_source_estimate_id"
     t.index ["status"], name: "index_jobs_on_status"
+    t.index ["tenant_id", "status"], name: "index_jobs_on_tenant_and_status"
     t.index ["tenant_id"], name: "index_jobs_on_tenant_id"
   end
 
@@ -320,6 +324,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_24_213848) do
     t.index ["contact_source"], name: "index_leads_on_contact_source"
     t.index ["converted_at"], name: "index_leads_on_converted_at"
     t.index ["converted_to_customer_id"], name: "index_leads_on_converted_to_customer_id"
+    t.index ["tenant_id", "classification"], name: "index_leads_on_tenant_and_classification"
     t.index ["tenant_id"], name: "index_leads_on_tenant_id"
   end
 
@@ -367,6 +372,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_24_213848) do
     t.index ["expected_close_date"], name: "index_opportunities_on_expected_close_date"
     t.index ["lead_id"], name: "index_opportunities_on_lead_id"
     t.index ["stage"], name: "index_opportunities_on_stage"
+    t.index ["tenant_id", "assigned_to_user_id"], name: "index_opportunities_on_tenant_and_assigned_user"
+    t.index ["tenant_id", "stage"], name: "index_opportunities_on_tenant_and_stage"
     t.index ["tenant_id"], name: "index_opportunities_on_tenant_id"
   end
 
@@ -380,6 +387,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_24_213848) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "tenant_id"
+    t.index ["invoice_id", "payment_date"], name: "index_payments_on_invoice_and_date"
     t.index ["invoice_id"], name: "index_payments_on_invoice_id"
     t.index ["payment_date"], name: "index_payments_on_payment_date"
     t.index ["received_by_user_id"], name: "index_payments_on_received_by_user_id"

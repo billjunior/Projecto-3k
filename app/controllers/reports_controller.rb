@@ -63,28 +63,37 @@ class ReportsController < ApplicationController
 
   def customers
     # Relatório de clientes
-    @customers = Customer.includes(:invoices, :opportunities, :estimates)
+    # Performance fix: Properly eager load all associations needed in views
+    customers_base = Customer.includes(
+      invoices: [:created_by_user, :payments],
+      opportunities: [:assigned_to_user, :created_by_user],
+      estimates: [:created_by_user, estimate_items: :product]
+    )
 
     # Filtros
     if params[:customer_type].present?
-      @customers = @customers.where(customer_type: params[:customer_type])
+      customers_base = customers_base.where(customer_type: params[:customer_type])
     end
 
     if params[:start_date].present? && params[:end_date].present?
       start_date = Date.parse(params[:start_date])
       end_date = Date.parse(params[:end_date])
-      @customers = @customers.where(created_at: start_date..end_date)
+      customers_base = customers_base.where(created_at: start_date..end_date)
     end
 
-    @customers = @customers.order(created_at: :desc).page(params[:page]).per(20)
+    @customers = customers_base.order(created_at: :desc).page(params[:page]).per(20)
 
+    # Performance fix: Use single queries for stats
     @total_customers = Customer.count
-    @customers_with_invoices = @customers.joins(:invoices).distinct.count
-    @top_customers = @customers.joins(:invoices)
-                               .select('customers.*, SUM(invoices.total_value) as total_spent')
-                               .group('customers.id')
-                               .order('total_spent DESC')
-                               .limit(10)
+    @customers_with_invoices = Customer.joins(:invoices).distinct.count
+
+    # Performance fix: Use separate query for top customers with proper aggregation
+    @top_customers = Customer
+                       .select('customers.id, customers.name, COALESCE(SUM(invoices.total_value), 0) as total_spent')
+                       .left_joins(:invoices)
+                       .group('customers.id, customers.name')
+                       .order('total_spent DESC')
+                       .limit(10)
 
     # Dados para gráficos
     @customers_by_type = Customer.group(:customer_type).count
@@ -92,7 +101,11 @@ class ReportsController < ApplicationController
     respond_to do |format|
       format.html
       format.pdf do
-        all_customers = Customer.includes(:invoices, :opportunities, :estimates).order(created_at: :desc)
+        all_customers = Customer.includes(
+          invoices: [:created_by_user, :payments],
+          opportunities: [:assigned_to_user, :created_by_user],
+          estimates: [:created_by_user, estimate_items: :product]
+        ).order(created_at: :desc)
         pdf = CustomersReportPdf.new(ActsAsTenant.current_tenant, all_customers).generate
         send_data pdf, filename: "relatorio_clientes_#{Time.current.strftime('%Y%m%d')}.pdf",
                        type: 'application/pdf',
@@ -112,7 +125,8 @@ class ReportsController < ApplicationController
 
     @opportunities_by_stage = opportunities_scope.group(:stage).count
     @total_value = opportunities_scope.sum(:value)
-    @weighted_value = @opportunities.sum { |o| (o.value || 0) * (o.probability || 0) / 100.0 }
+    # Performance fix: Calculate weighted_value in SQL instead of Ruby
+    @weighted_value = opportunities_scope.sum('COALESCE(value, 0) * COALESCE(probability, 0) / 100.0') || 0
     @conversion_rate = opportunities_scope.won.count.to_f / opportunities_scope.count * 100 if opportunities_scope.any?
     @avg_deal_size = opportunities_scope.won.average(:value)
 
