@@ -86,7 +86,7 @@ class Opportunity < ApplicationRecord
       tenant: tenant,
       customer: customer,
       created_by_user: created_by_user || assigned_to_user,
-      status: :pending,
+      status: 'rascunho',
       notes: "Convertido de oportunidade: #{title}\n\n#{description}"
     }.merge(attributes))
 
