@@ -214,7 +214,7 @@ class ReportsController < ApplicationController
                                    .group('customers.id, customers.name')
                                    .order('total DESC')
                                    .limit(10)
-                                   .pluck('customers.name', 'COALESCE(SUM(invoices.total_value), 0)')
+                                   .pluck(Arel.sql('customers.name'), Arel.sql('COALESCE(SUM(invoices.total_value), 0)'))
                                    .to_h
     @customer_type_data = Customer.group(:customer_type).count
 
