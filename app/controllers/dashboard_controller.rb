@@ -23,7 +23,13 @@ class DashboardController < ApplicationController
     @opportunity_win_rate = total_opportunities > 0 ? (won_opportunities.to_f / total_opportunities * 100).round(1) : 0
 
     # Chart data
-    @monthly_sales_data = Payment.group_by_month(:created_at, last: 6).sum(:amount)
+    # Temporary workaround using raw SQL until server is restarted
+    @monthly_sales_data = Payment
+      .where('created_at >= ?', 6.months.ago)
+      .group("DATE_TRUNC('month', created_at)")
+      .sum(:amount)
+      .transform_keys { |date| date.strftime('%b %Y') }
+
     @opportunities_by_stage = Opportunity.group(:stage).count
     @leads_by_source = Lead.group(:contact_source).count
 

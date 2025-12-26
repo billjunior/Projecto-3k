@@ -97,7 +97,12 @@ class ReportsController < ApplicationController
 
     # Chart data for visualizations
     @customers_by_type = Customer.group(:customer_type).count
-    @customer_acquisition_data = Customer.group_by_month(:created_at, last: 12).count
+    # Temporary workaround using raw SQL until server is restarted
+    @customer_acquisition_data = Customer
+      .where('created_at >= ?', 12.months.ago)
+      .group("DATE_TRUNC('month', created_at)")
+      .count
+      .transform_keys { |date| date.strftime('%b %Y') }
 
     respond_to do |format|
       format.html
@@ -148,8 +153,17 @@ class ReportsController < ApplicationController
       'Ganhos' => @opportunities_by_stage[4] || 0,
       'Perdidos' => @opportunities_by_stage[5] || 0
     }
-    @monthly_opportunities_data = opportunities_scope.group_by_month(:created_at, last: 12).count
-    @monthly_won_value_data = opportunities_scope.won.group_by_month(:created_at, last: 12).sum(:value)
+    # Temporary workaround using raw SQL until server is restarted
+    @monthly_opportunities_data = opportunities_scope
+      .where('created_at >= ?', 12.months.ago)
+      .group("DATE_TRUNC('month', created_at)")
+      .count
+      .transform_keys { |date| date.strftime('%b %Y') }
+    @monthly_won_value_data = opportunities_scope.won
+      .where('created_at >= ?', 12.months.ago)
+      .group("DATE_TRUNC('month', created_at)")
+      .sum(:value)
+      .transform_keys { |date| date.strftime('%b %Y') }
 
     respond_to do |format|
       format.html
@@ -189,7 +203,12 @@ class ReportsController < ApplicationController
     @jobs_completed = @jobs.where(status: 'concluído')
 
     # Chart data for visualizations
-    @monthly_sales_data = Invoice.group_by_month(:invoice_date, last: 12).sum(:total_value)
+    # Temporary workaround using raw SQL until server is restarted
+    @monthly_sales_data = Invoice
+      .where('invoice_date >= ?', 12.months.ago)
+      .group("DATE_TRUNC('month', invoice_date)")
+      .sum(:total_value)
+      .transform_keys { |date| date.strftime('%b %Y') }
     @top_customers_data = Customer.select('customers.name, COALESCE(SUM(invoices.total_value), 0) as total')
                                    .left_joins(:invoices)
                                    .group('customers.id, customers.name')
