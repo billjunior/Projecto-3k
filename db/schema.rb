@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_26_095253) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_26_100319) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -60,6 +60,25 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_26_095253) do
     t.index ["user_id"], name: "index_audit_logs_on_user_id"
   end
 
+  create_table "communications", force: :cascade do |t|
+    t.string "communicable_type", null: false
+    t.bigint "communicable_id", null: false
+    t.bigint "tenant_id", null: false
+    t.integer "communication_type", null: false
+    t.string "subject"
+    t.text "content"
+    t.bigint "created_by_user_id", null: false
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["communicable_type", "communicable_id"], name: "index_communications_on_communicable"
+    t.index ["created_by_user_id"], name: "index_communications_on_created_by_user_id"
+    t.index ["tenant_id", "communicable_type", "communicable_id"], name: "index_communications_on_tenant_and_communicable"
+    t.index ["tenant_id", "communication_type"], name: "index_communications_on_tenant_and_type"
+    t.index ["tenant_id", "created_at"], name: "index_communications_on_tenant_and_created_at"
+    t.index ["tenant_id"], name: "index_communications_on_tenant_id"
+  end
+
   create_table "company_settings", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.string "company_name"
@@ -77,6 +96,26 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_26_095253) do
     t.string "director_general_email"
     t.string "financial_director_email"
     t.index ["tenant_id"], name: "index_company_settings_on_tenant_id"
+  end
+
+  create_table "contacts", force: :cascade do |t|
+    t.string "contactable_type", null: false
+    t.bigint "contactable_id", null: false
+    t.bigint "tenant_id", null: false
+    t.string "name", null: false
+    t.string "email"
+    t.string "phone"
+    t.string "whatsapp"
+    t.string "position"
+    t.string "department"
+    t.boolean "primary", default: false, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["contactable_type", "contactable_id"], name: "index_contacts_on_contactable"
+    t.index ["tenant_id", "contactable_type", "contactable_id"], name: "index_contacts_on_tenant_and_contactable"
+    t.index ["tenant_id", "primary"], name: "index_contacts_on_tenant_and_primary"
+    t.index ["tenant_id"], name: "index_contacts_on_tenant_id"
   end
 
   create_table "customers", force: :cascade do |t|
@@ -536,7 +575,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_26_095253) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "audit_logs", "tenants"
   add_foreign_key "audit_logs", "users"
+  add_foreign_key "communications", "tenants"
+  add_foreign_key "communications", "users", column: "created_by_user_id"
   add_foreign_key "company_settings", "tenants"
+  add_foreign_key "contacts", "tenants"
   add_foreign_key "customers", "tenants"
   add_foreign_key "daily_revenues", "tenants"
   add_foreign_key "estimate_items", "estimates"

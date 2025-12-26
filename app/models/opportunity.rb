@@ -8,6 +8,7 @@ class Opportunity < ApplicationRecord
   belongs_to :lead, optional: true
   belongs_to :assigned_to_user, class_name: 'User', optional: true
   belongs_to :created_by_user, class_name: 'User', optional: true
+  has_many :communications, as: :communicable, dependent: :destroy
 
   # Enums
   enum stage: {

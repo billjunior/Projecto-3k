@@ -5,6 +5,8 @@ class Customer < ApplicationRecord
   has_many :jobs, dependent: :restrict_with_error
   has_many :lan_sessions, dependent: :restrict_with_error
   has_many :invoices, dependent: :restrict_with_error
+  has_many :contacts, as: :contactable, dependent: :destroy
+  has_many :communications, as: :communicable, dependent: :destroy
 
   # Validations
   validates :name, presence: true

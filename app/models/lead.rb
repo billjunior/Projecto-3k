@@ -6,6 +6,8 @@ class Lead < ApplicationRecord
   belongs_to :tenant
   belongs_to :assigned_to_user, class_name: 'User', optional: true
   belongs_to :converted_to_customer, class_name: 'Customer', optional: true
+  has_many :contacts, as: :contactable, dependent: :destroy
+  has_many :communications, as: :communicable, dependent: :destroy
 
   # Enums
   enum classification: { hot: 0, warm: 1, cold: 2 }
@@ -45,6 +47,16 @@ class Lead < ApplicationRecord
       customer_type: 'particular',
       notes: "Convertido de lead: #{notes}"
     }.merge(attributes))
+
+    # Migrate contacts from lead to customer
+    contacts.each do |contact|
+      contact.update!(contactable: customer)
+    end
+
+    # Migrate communications from lead to customer
+    communications.each do |communication|
+      communication.update!(communicable: customer)
+    end
 
     update!(
       converted_to_customer: customer,
