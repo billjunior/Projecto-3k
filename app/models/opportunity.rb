@@ -85,7 +85,7 @@ class Opportunity < ApplicationRecord
     estimate = Estimate.create!({
       tenant: tenant,
       customer: customer,
-      user: created_by_user || assigned_to_user,
+      created_by_user: created_by_user || assigned_to_user,
       status: :pending,
       notes: "Convertido de oportunidade: #{title}\n\n#{description}"
     }.merge(attributes))
