@@ -17,7 +17,7 @@ class OpportunitiesController < ApplicationController
       "COUNT(*) FILTER (WHERE stage = 5) as lost_count",
       "SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) ELSE 0 END) as total_value",
       "SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) * COALESCE(probability, 0) / 100.0 ELSE 0 END) as weighted_value"
-    ).first
+    ).take
 
     @stats = {
       total: stats_query.total_count || 0,
@@ -76,7 +76,7 @@ class OpportunitiesController < ApplicationController
       "COUNT(*) FILTER (WHERE stage = 5) as lost_count",
       "SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) ELSE 0 END) as total_value",
       "SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) * COALESCE(probability, 0) / 100.0 ELSE 0 END) as weighted_value"
-    ).first
+    ).take
 
     @stats = {
       total: stats_query.total_count || 0,
