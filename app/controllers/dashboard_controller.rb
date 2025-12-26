@@ -6,9 +6,31 @@ class DashboardController < ApplicationController
     @pending_invoices = Invoice.where(status: :pending).count
     @today_revenue = calculate_today_revenue
 
+    # CRM Metrics
+    @leads_count = Lead.not_converted.count
+    @hot_leads_count = Lead.not_converted.hot.count
+    @opportunities_count = Opportunity.open.count
+    @opportunities_value = Opportunity.open.sum(:value) || 0
+    @opportunities_weighted_value = Opportunity.open.sum('COALESCE(value, 0) * COALESCE(probability, 0) / 100.0') || 0
+
+    # Conversion Rates
+    total_leads = Lead.count
+    converted_leads = Lead.converted.count
+    @lead_conversion_rate = total_leads > 0 ? (converted_leads.to_f / total_leads * 100).round(1) : 0
+
+    total_opportunities = Opportunity.count
+    won_opportunities = Opportunity.won.count
+    @opportunity_win_rate = total_opportunities > 0 ? (won_opportunities.to_f / total_opportunities * 100).round(1) : 0
+
+    # Chart data
+    @monthly_sales_data = Payment.group_by_month(:created_at, last: 6).sum(:amount)
+    @opportunities_by_stage = Opportunity.group(:stage).count
+    @leads_by_source = Lead.group(:contact_source).count
+
     # Recent activities
     @recent_jobs = Job.order(created_at: :desc).limit(5)
     @pending_tasks = Task.where(status: 'pendente').order(due_date: :asc).limit(5)
+    @recent_communications = Communication.includes(:created_by_user, :communicable).recent.limit(5)
   end
 
   private

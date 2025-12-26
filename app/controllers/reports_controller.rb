@@ -95,8 +95,9 @@ class ReportsController < ApplicationController
                        .order('total_spent DESC')
                        .limit(10)
 
-    # Dados para gráficos
+    # Chart data for visualizations
     @customers_by_type = Customer.group(:customer_type).count
+    @customer_acquisition_data = Customer.group_by_month(:created_at, last: 12).count
 
     respond_to do |format|
       format.html
@@ -110,6 +111,12 @@ class ReportsController < ApplicationController
         send_data pdf, filename: "relatorio_clientes_#{Time.current.strftime('%Y%m%d')}.pdf",
                        type: 'application/pdf',
                        disposition: 'inline'
+      end
+      format.csv do
+        csv_data = generate_customers_csv(customers_base.order(created_at: :desc))
+        send_data csv_data, filename: "relatorio_clientes_#{Time.current.strftime('%Y%m%d')}.csv",
+                           type: 'text/csv',
+                           disposition: 'attachment'
       end
     end
   end
@@ -130,6 +137,20 @@ class ReportsController < ApplicationController
     @conversion_rate = opportunities_scope.won.count.to_f / opportunities_scope.count * 100 if opportunities_scope.any?
     @avg_deal_size = opportunities_scope.won.average(:value)
 
+    # Chart data for visualizations
+    @pipeline_funnel_data = {
+      'Novo' => @opportunities_by_stage[0] || 0,
+      'Qualificado' => @opportunities_by_stage[1] || 0,
+      'Proposta' => @opportunities_by_stage[2] || 0,
+      'Negociação' => @opportunities_by_stage[3] || 0
+    }
+    @win_loss_data = {
+      'Ganhos' => @opportunities_by_stage[4] || 0,
+      'Perdidos' => @opportunities_by_stage[5] || 0
+    }
+    @monthly_opportunities_data = opportunities_scope.group_by_month(:created_at, last: 12).count
+    @monthly_won_value_data = opportunities_scope.won.group_by_month(:created_at, last: 12).sum(:value)
+
     respond_to do |format|
       format.html
       format.pdf do
@@ -138,6 +159,12 @@ class ReportsController < ApplicationController
         send_data pdf, filename: "relatorio_oportunidades_#{Time.current.strftime('%Y%m%d')}.pdf",
                        type: 'application/pdf',
                        disposition: 'inline'
+      end
+      format.csv do
+        csv_data = generate_opportunities_csv(opportunities_scope.includes(:customer, :assigned_to_user))
+        send_data csv_data, filename: "relatorio_oportunidades_#{Time.current.strftime('%Y%m%d')}.csv",
+                           type: 'text/csv',
+                           disposition: 'attachment'
       end
     end
   end
@@ -161,10 +188,16 @@ class ReportsController < ApplicationController
     @jobs = Job.where(created_at: @start_date..@end_date)
     @jobs_completed = @jobs.where(status: 'concluído')
 
-    # Vendas por mês (últimos 12 meses)
-    @monthly_sales = Invoice.where('invoice_date >= ?', 12.months.ago)
-                           .group("DATE_TRUNC('month', invoice_date)")
-                           .sum(:total_value)
+    # Chart data for visualizations
+    @monthly_sales_data = Invoice.group_by_month(:invoice_date, last: 12).sum(:total_value)
+    @top_customers_data = Customer.select('customers.name, COALESCE(SUM(invoices.total_value), 0) as total')
+                                   .left_joins(:invoices)
+                                   .group('customers.id, customers.name')
+                                   .order('total DESC')
+                                   .limit(10)
+                                   .pluck(:name, :total)
+                                   .to_h
+    @customer_type_data = Customer.group(:customer_type).count
 
     respond_to do |format|
       format.html
@@ -173,6 +206,12 @@ class ReportsController < ApplicationController
         send_data pdf, filename: "relatorio_vendas_#{@start_date.strftime('%Y%m%d')}_#{@end_date.strftime('%Y%m%d')}.pdf",
                        type: 'application/pdf',
                        disposition: 'inline'
+      end
+      format.csv do
+        csv_data = generate_sales_csv(@invoices.includes(:customer, :created_by_user).order(invoice_date: :desc))
+        send_data csv_data, filename: "relatorio_vendas_#{@start_date.strftime('%Y%m%d')}_#{@end_date.strftime('%Y%m%d')}.csv",
+                           type: 'text/csv',
+                           disposition: 'attachment'
       end
     end
   end
@@ -304,6 +343,66 @@ class ReportsController < ApplicationController
   def check_admin_access
     unless current_user.admin? || current_user.super_admin?
       redirect_to root_path, alert: 'Acesso negado. Apenas administradores podem ver relatórios.'
+    end
+  end
+
+  # CSV generation methods
+  def generate_opportunities_csv(opportunities)
+    require 'csv'
+
+    CSV.generate(headers: true) do |csv|
+      csv << ['Título', 'Cliente', 'Etapa', 'Valor', 'Probabilidade', 'Valor Ponderado', 'Responsável', 'Data Criação']
+
+      opportunities.each do |opp|
+        csv << [
+          opp.title,
+          opp.customer.name,
+          opp.stage_display_name,
+          opp.value || 0,
+          "#{opp.probability}%",
+          opp.weighted_value,
+          opp.assigned_to_user&.name || 'Não atribuído',
+          opp.created_at.strftime('%d/%m/%Y')
+        ]
+      end
+    end
+  end
+
+  def generate_customers_csv(customers)
+    require 'csv'
+
+    CSV.generate(headers: true) do |csv|
+      csv << ['Nome', 'Tipo', 'NIF', 'Email', 'Telefone', 'Data Criação']
+
+      customers.each do |customer|
+        csv << [
+          customer.name,
+          customer.customer_type_label,
+          customer.tax_id,
+          customer.email,
+          customer.phone,
+          customer.created_at.strftime('%d/%m/%Y')
+        ]
+      end
+    end
+  end
+
+  def generate_sales_csv(invoices)
+    require 'csv'
+
+    CSV.generate(headers: true) do |csv|
+      csv << ['Número', 'Cliente', 'Data', 'Valor Total', 'Estado', 'Criado Por']
+
+      invoices.each do |invoice|
+        csv << [
+          invoice.invoice_number,
+          invoice.customer.name,
+          invoice.invoice_date.strftime('%d/%m/%Y'),
+          invoice.total_value,
+          invoice.status,
+          invoice.created_by_user.name
+        ]
+      end
     end
   end
 end

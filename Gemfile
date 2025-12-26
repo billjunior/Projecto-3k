@@ -61,6 +61,10 @@ gem "caxlsx_rails"
 # Word (DOCX) generation
 gem "sablon"
 
+# Charts and data visualization
+gem "chartkick", "~> 5.0"
+gem "groupdate", "~> 6.4"
+
 # Bootstrap for UI
 gem "bootstrap", "~> 5.3"
 gem "sassc-rails"
