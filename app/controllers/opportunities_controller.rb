@@ -10,22 +10,22 @@ class OpportunitiesController < ApplicationController
 
     # Performance fix: Calculate all stats in a single query using CASE WHEN
     base_scope = policy_scope(Opportunity)
-    stats_query = base_scope.select(
-      "COUNT(*) as total_count",
-      "COUNT(*) FILTER (WHERE stage IN (0,1,2,3)) as open_count",
-      "COUNT(*) FILTER (WHERE stage = 4) as won_count",
-      "COUNT(*) FILTER (WHERE stage = 5) as lost_count",
-      "SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) ELSE 0 END) as total_value",
-      "SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) * COALESCE(probability, 0) / 100.0 ELSE 0 END) as weighted_value"
-    ).take
+    total_count, open_count, won_count, lost_count, total_value, weighted_value = base_scope.pluck(
+      Arel.sql("COUNT(*)"),
+      Arel.sql("COUNT(*) FILTER (WHERE stage IN (0,1,2,3))"),
+      Arel.sql("COUNT(*) FILTER (WHERE stage = 4)"),
+      Arel.sql("COUNT(*) FILTER (WHERE stage = 5)"),
+      Arel.sql("SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) ELSE 0 END)"),
+      Arel.sql("SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) * COALESCE(probability, 0) / 100.0 ELSE 0 END)")
+    ).first
 
     @stats = {
-      total: stats_query.total_count || 0,
-      open: stats_query.open_count || 0,
-      won: stats_query.won_count || 0,
-      lost: stats_query.lost_count || 0,
-      total_value: stats_query.total_value || 0,
-      weighted_value: stats_query.weighted_value || 0
+      total: total_count || 0,
+      open: open_count || 0,
+      won: won_count || 0,
+      lost: lost_count || 0,
+      total_value: total_value || 0,
+      weighted_value: weighted_value || 0
     }
   end
 
@@ -69,22 +69,22 @@ class OpportunitiesController < ApplicationController
 
     # Performance fix: Calculate all stats in a single query
     base_scope = policy_scope(Opportunity)
-    stats_query = base_scope.select(
-      "COUNT(*) as total_count",
-      "COUNT(*) FILTER (WHERE stage IN (0,1,2,3)) as open_count",
-      "COUNT(*) FILTER (WHERE stage = 4) as won_count",
-      "COUNT(*) FILTER (WHERE stage = 5) as lost_count",
-      "SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) ELSE 0 END) as total_value",
-      "SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) * COALESCE(probability, 0) / 100.0 ELSE 0 END) as weighted_value"
-    ).take
+    total_count, open_count, won_count, lost_count, total_value, weighted_value = base_scope.pluck(
+      Arel.sql("COUNT(*)"),
+      Arel.sql("COUNT(*) FILTER (WHERE stage IN (0,1,2,3))"),
+      Arel.sql("COUNT(*) FILTER (WHERE stage = 4)"),
+      Arel.sql("COUNT(*) FILTER (WHERE stage = 5)"),
+      Arel.sql("SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) ELSE 0 END)"),
+      Arel.sql("SUM(CASE WHEN stage IN (0,1,2,3) THEN COALESCE(value, 0) * COALESCE(probability, 0) / 100.0 ELSE 0 END)")
+    ).first
 
     @stats = {
-      total: stats_query.total_count || 0,
-      open: stats_query.open_count || 0,
-      won: stats_query.won_count || 0,
-      lost: stats_query.lost_count || 0,
-      total_value: stats_query.total_value || 0,
-      weighted_value: stats_query.weighted_value || 0
+      total: total_count || 0,
+      open: open_count || 0,
+      won: won_count || 0,
+      lost: lost_count || 0,
+      total_value: total_value || 0,
+      weighted_value: weighted_value || 0
     }
   end
 
