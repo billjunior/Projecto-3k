@@ -204,11 +204,11 @@ class ReportsController < ApplicationController
 
     # Chart data for visualizations
     # Temporary workaround using raw SQL until server is restarted
-    @monthly_sales_data = Invoice
+    @monthly_sales = Invoice
       .where('invoice_date >= ?', 12.months.ago)
       .group("DATE_TRUNC('month', invoice_date)")
       .sum(:total_value)
-      .transform_keys { |date| date.strftime('%b %Y') }
+    @monthly_sales_data = @monthly_sales.transform_keys { |date| date.strftime('%b %Y') }
     @top_customers_data = Customer.select('customers.name, COALESCE(SUM(invoices.total_value), 0) as total')
                                    .left_joins(:invoices)
                                    .group('customers.id, customers.name')
