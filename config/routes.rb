@@ -38,7 +38,15 @@ Rails.application.routes.draw do
   get 'dashboard', to: 'dashboard#index', as: :dashboard
 
   # Main resources
-  resources :customers
+  resources :customers do
+    resources :contacts do
+      member do
+        post :set_as_primary
+      end
+    end
+    resources :communications
+  end
+
   resources :products do
     resources :price_rules, only: [:create, :update, :destroy]
   end
@@ -121,6 +129,12 @@ Rails.application.routes.draw do
     member do
       post :convert_to_customer
     end
+    resources :contacts do
+      member do
+        post :set_as_primary
+      end
+    end
+    resources :communications
   end
 
   resources :opportunities do
@@ -133,6 +147,7 @@ Rails.application.routes.draw do
       post :convert_to_estimate
       patch :update_stage
     end
+    resources :communications
   end
 
   # Admin namespace (Super Admin only)

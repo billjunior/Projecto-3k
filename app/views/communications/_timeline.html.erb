@@ -1,0 +1,64 @@
+<div class="card mt-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Histórico de Comunicações</h5>
+    <% if policy(Communication).create? %>
+      <%= link_to "Adicionar Comunicação", new_polymorphic_path([communicable, :communication]), class: "btn btn-sm btn-primary" %>
+    <% end %>
+  </div>
+  <div class="card-body">
+    <% if communicable.communications.any? %>
+      <div class="timeline">
+        <% communicable.communications.recent.each do |communication| %>
+          <div class="timeline-item mb-3 pb-3 border-bottom">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center mb-2">
+                  <span class="badge bg-<%= communication_type_badge(communication.communication_type) %> me-2">
+                    <%= communication.communication_type_label %>
+                  </span>
+                  <small class="text-muted">
+                    <%= communication.created_at.strftime("%d/%m/%Y %H:%M") %> por <%= communication.created_by_user.name %>
+                  </small>
+                  <% if communication.completed? %>
+                    <span class="badge bg-success ms-2">Concluída</span>
+                  <% end %>
+                </div>
+                <% if communication.subject.present? %>
+                  <h6 class="mb-1"><%= communication.subject %></h6>
+                <% end %>
+                <% if communication.content.present? %>
+                  <p class="mb-0"><%= simple_format communication.content %></p>
+                <% end %>
+              </div>
+              <div class="btn-group" role="group">
+                <% unless communication.completed? %>
+                  <%= button_to "Concluir", mark_as_completed_polymorphic_path([communicable, communication]), method: :post, class: "btn btn-sm btn-outline-success" %>
+                <% end %>
+                <% if policy(communication).update? %>
+                  <%= link_to "Editar", edit_polymorphic_path([communicable, communication]), class: "btn btn-sm btn-outline-secondary" %>
+                <% end %>
+                <% if policy(communication).destroy? %>
+                  <%= button_to "Remover", polymorphic_path([communicable, communication]), method: :delete, class: "btn btn-sm btn-outline-danger", data: { confirm: "Tem a certeza?" } %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-muted mb-0">Nenhuma comunicação registada.</p>
+    <% end %>
+  </div>
+</div>
+
+<%# Helper method for badge colors %>
+<% def communication_type_badge(type)
+  case type
+  when 'email' then 'primary'
+  when 'call' then 'info'
+  when 'meeting' then 'warning'
+  when 'whatsapp' then 'success'
+  when 'note' then 'secondary'
+  else 'secondary'
+  end
+end %>

@@ -1,0 +1,48 @@
+<%= form_with(model: [communicable, communication], local: true) do |form| %>
+  <% if communication.errors.any? %>
+    <div class="alert alert-danger">
+      <h4><%= pluralize(communication.errors.count, "erro") %> impediram que esta comunicação fosse guardada:</h4>
+      <ul>
+        <% communication.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= form.label :communication_type, "Tipo de Comunicação *", class: "form-label" %>
+    <%= form.select :communication_type,
+        options_for_select([
+          ['Email', 'email'],
+          ['Chamada', 'call'],
+          ['Reunião', 'meeting'],
+          ['WhatsApp', 'whatsapp'],
+          ['Nota', 'note']
+        ], communication.communication_type),
+        {},
+        { class: "form-select", required: true } %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :subject, "Assunto", class: "form-label" %>
+    <%= form.text_field :subject, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :content, "Conteúdo", class: "form-label" %>
+    <%= form.text_area :content, class: "form-control", rows: 5 %>
+  </div>
+
+  <div class="mb-3">
+    <div class="form-check">
+      <%= form.check_box :completed_at, { class: "form-check-input", checked: communication.completed? }, Time.current, nil %>
+      <%= form.label :completed_at, "Marcar como concluída", class: "form-check-label" %>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between">
+    <%= link_to "Cancelar", polymorphic_path(communicable), class: "btn btn-secondary" %>
+    <%= form.submit communication.new_record? ? "Registar Comunicação" : "Actualizar Comunicação", class: "btn btn-primary" %>
+  </div>
+<% end %>

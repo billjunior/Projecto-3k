@@ -1,0 +1,77 @@
+<%= form_with(model: [contactable, contact], local: true) do |form| %>
+  <% if contact.errors.any? %>
+    <div class="alert alert-danger">
+      <h4><%= pluralize(contact.errors.count, "erro") %> impediram que este contacto fosse guardado:</h4>
+      <ul>
+        <% contact.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :name, "Nome *", class: "form-label" %>
+        <%= form.text_field :name, class: "form-control", required: true %>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :email, "Email", class: "form-label" %>
+        <%= form.email_field :email, class: "form-control" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :phone, "Telefone", class: "form-label" %>
+        <%= form.text_field :phone, class: "form-control" %>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :whatsapp, "WhatsApp", class: "form-label" %>
+        <%= form.text_field :whatsapp, class: "form-control" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :position, "Cargo", class: "form-label" %>
+        <%= form.text_field :position, class: "form-control" %>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="mb-3">
+        <%= form.label :department, "Departamento", class: "form-label" %>
+        <%= form.text_field :department, class: "form-control" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <div class="form-check">
+      <%= form.check_box :primary, class: "form-check-input" %>
+      <%= form.label :primary, "Contacto principal", class: "form-check-label" %>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :notes, "Notas", class: "form-label" %>
+    <%= form.text_area :notes, class: "form-control", rows: 3 %>
+  </div>
+
+  <div class="d-flex justify-content-between">
+    <%= link_to "Cancelar", polymorphic_path(contactable), class: "btn btn-secondary" %>
+    <%= form.submit contact.new_record? ? "Criar Contacto" : "Actualizar Contacto", class: "btn btn-primary" %>
+  </div>
+<% end %>

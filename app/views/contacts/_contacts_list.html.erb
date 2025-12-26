@@ -1,0 +1,61 @@
+<div class="card mt-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0"><i class="bi bi-person-vcard me-2"></i>Contactos</h5>
+    <% if policy(Contact).create? %>
+      <%= link_to "Adicionar Contacto", new_polymorphic_path([contactable, :contact]), class: "btn btn-sm btn-primary" %>
+    <% end %>
+  </div>
+  <div class="card-body">
+    <% if contactable.contacts.any? %>
+      <div class="list-group">
+        <% contactable.contacts.each do |contact| %>
+          <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between align-items-start">
+              <div>
+                <h6 class="mb-1">
+                  <%= contact.name %>
+                  <% if contact.primary? %>
+                    <span class="badge bg-primary">Principal</span>
+                  <% end %>
+                </h6>
+                <% if contact.position.present? %>
+                  <p class="mb-1 text-muted"><small><%= contact.position %></small></p>
+                <% end %>
+                <% if contact.department.present? %>
+                  <p class="mb-1 text-muted"><small><%= contact.department %></small></p>
+                <% end %>
+              </div>
+              <div class="btn-group" role="group">
+                <% unless contact.primary? %>
+                  <%= button_to "Tornar Principal", set_as_primary_polymorphic_path([contactable, contact]), method: :post, class: "btn btn-sm btn-outline-primary", data: { confirm: "Definir este contacto como principal?" } %>
+                <% end %>
+                <% if policy(contact).update? %>
+                  <%= link_to "Editar", edit_polymorphic_path([contactable, contact]), class: "btn btn-sm btn-outline-secondary" %>
+                <% end %>
+                <% if policy(contact).destroy? %>
+                  <%= button_to "Remover", polymorphic_path([contactable, contact]), method: :delete, class: "btn btn-sm btn-outline-danger", data: { confirm: "Tem a certeza?" } %>
+                <% end %>
+              </div>
+            </div>
+            <div class="mt-2">
+              <% if contact.email.present? %>
+                <p class="mb-1"><i class="bi bi-envelope me-2"></i><%= mail_to contact.email, contact.email %></p>
+              <% end %>
+              <% if contact.phone.present? %>
+                <p class="mb-1"><%= phone_link(contact.phone) %></p>
+              <% end %>
+              <% if contact.whatsapp.present? %>
+                <p class="mb-1"><%= whatsapp_link(contact.whatsapp) %></p>
+              <% end %>
+            </div>
+            <% if contact.notes.present? %>
+              <p class="mt-2 mb-0 text-muted"><small><%= simple_format contact.notes %></small></p>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-muted mb-0">Nenhum contacto registado.</p>
+    <% end %>
+  </div>
+</div>
