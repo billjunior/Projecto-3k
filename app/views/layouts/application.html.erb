@@ -7,6 +7,14 @@
     <%= csp_meta_tag %>
     <%= tenant_favicon_tag if user_signed_in? %>
 
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CRM 3K">
+    <meta name="theme-color" content="#000000">
+
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-esm.min.js" type="module"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -89,7 +97,22 @@
         color: white;
         border-bottom: 1px solid rgba(255,255,255,0.1);
         text-decoration: none;
-        display: block;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .app-sidebar .logo img {
+        max-height: 40px;
+        max-width: 60px;
+        object-fit: contain;
+      }
+
+      .app-sidebar .logo-text {
+        font-size: 18px;
+        font-weight: 700;
+        color: white;
+        line-height: 1.2;
       }
 
       .app-sidebar .sidebar-menu {
@@ -476,6 +499,44 @@
         background-color: rgba(255, 255, 255, 0.05);
         color: var(--text-dark);
       }
+
+      /* Connection Status Indicator */
+      .connection-status {
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.3s;
+      }
+
+      .connection-status.online {
+        background: rgba(72, 187, 120, 0.15);
+        color: #9ae6b4;
+        border: 1px solid rgba(72, 187, 120, 0.3);
+      }
+
+      .connection-status.offline {
+        background: rgba(245, 101, 101, 0.15);
+        color: #fc8181;
+        border: 1px solid rgba(245, 101, 101, 0.3);
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      .connection-status i {
+        font-size: 14px;
+      }
     </style>
     <script>
       document.addEventListener('turbo:load', function() {
@@ -493,6 +554,11 @@
     <%# Chartkick for data visualization %>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <%= javascript_include_tag "https://cdn.jsdelivr.net/npm/chartkick@5.0.1/dist/chartkick.min.js" %>
+
+    <%# Offline Sync System %>
+    <% if user_signed_in? %>
+      <script src="/offline-sync.js" defer></script>
+    <% end %>
   </head>
 
   <body class="<%= 'app-authenticated' if user_signed_in? %>">
@@ -500,7 +566,12 @@
       <!-- Sidebar -->
       <aside class="app-sidebar">
         <%= link_to root_path, class: 'logo' do %>
-          <%= tenant_branding(size: :small) %>
+          <% if cached_company_settings&.logo&.attached? %>
+            <%= image_tag cached_company_settings.logo, alt: 'Logo' %>
+          <% end %>
+          <span class="logo-text">
+            <%= cached_company_settings&.company_name || 'CRM 3K' %>
+          </span>
         <% end %>
 
         <ul class="sidebar-menu">
@@ -612,6 +683,11 @@
       <div class="app-main">
         <!-- Top Bar -->
         <div class="app-topbar">
+          <!-- Connection Status -->
+          <div id="connection-status" class="connection-status online">
+            <i class="bi bi-wifi"></i> Online
+          </div>
+
           <div class="dropdown">
             <button class="btn btn-link text-decoration-none text-dark" type="button" data-bs-toggle="dropdown">
               <i class="bi bi-person-circle"></i> <%= current_user.email %>

@@ -168,6 +168,115 @@
           </div>
         </div>
       </div>
+
+      <!-- Pricing Analysis Section (Directors Only) -->
+      <% if current_user.role.in?(['super_admin', 'admin', 'financeiro']) %>
+        <% analysis = @estimate.pricing_analysis %>
+        <div class="card mt-3">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-graph-up"></i> Análise de Preços (Diretores)</h5>
+          </div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-3">
+                <div class="text-muted mb-1">Margem Esperada</div>
+                <div class="fs-4 text-success">
+                  <%= number_to_percentage(analysis[:expected_margin], precision: 0) %>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="text-muted mb-1">Margem Real</div>
+                <div class="fs-4 <%= analysis[:actual_margin_percentage] < analysis[:expected_margin] ? 'text-danger' : 'text-success' %>">
+                  <%= number_to_percentage(analysis[:actual_margin_percentage], precision: 2) %>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="text-muted mb-1">Custo Total</div>
+                <div class="fs-5">
+                  <%= number_to_currency(analysis[:total_cost], unit: 'AOA ') %>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="text-muted mb-1">Lucro Real</div>
+                <div class="fs-5 <%= analysis[:total_profit] > 0 ? 'text-success' : 'text-danger' %>">
+                  <%= number_to_currency(analysis[:total_profit], unit: 'AOA ') %>
+                </div>
+              </div>
+            </div>
+
+            <% if @estimate.discount_percentage.present? && @estimate.discount_percentage > 0 %>
+              <div class="alert alert-warning">
+                <strong><i class="bi bi-percent"></i> Desconto Aplicado:</strong>
+                <%= number_to_percentage(@estimate.discount_percentage, precision: 2) %>
+                <% if @estimate.discount_amount.present? && @estimate.discount_amount > 0 %>
+                  (<%= number_to_currency(@estimate.discount_amount, unit: 'AOA ') %>)
+                <% end %>
+              </div>
+
+              <% if @estimate.discount_justification.present? %>
+                <div class="card bg-light mb-3">
+                  <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-chat-text"></i> Justificação do Desconto</h6>
+                    <p class="card-text mb-0"><%= simple_format(@estimate.discount_justification) %></p>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+
+            <% if analysis[:has_warnings] %>
+              <div class="alert alert-<%= case analysis[:severity]
+                when 'low' then 'info'
+                when 'medium' then 'warning'
+                else 'danger'
+              end %> mb-3">
+                <strong><i class="bi bi-exclamation-triangle"></i> Aviso de Margem:</strong>
+                A margem de lucro está <%= number_to_percentage(analysis[:margin_deficit], precision: 2) %>
+                abaixo do esperado, resultando numa perda estimada de lucro de
+                <%= number_to_currency(analysis[:profit_loss], unit: 'AOA ') %>.
+              </div>
+
+              <% if analysis[:below_margin_items].any? %>
+                <h6><i class="bi bi-list-check"></i> Itens Abaixo da Margem Esperada:</h6>
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Produto</th>
+                        <th class="text-center">Margem Real</th>
+                        <th class="text-center">Défice</th>
+                        <th class="text-end">Perda de Lucro</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% analysis[:below_margin_items].each do |item| %>
+                        <tr>
+                          <td><%= item[:product_name] %></td>
+                          <td class="text-center text-danger">
+                            <%= number_to_percentage(item[:margin_percentage], precision: 2) %>
+                          </td>
+                          <td class="text-center text-warning">
+                            <%= number_to_percentage(item[:margin_gap], precision: 2) %>
+                          </td>
+                          <td class="text-end text-danger">
+                            <%= number_to_currency(item[:profit_loss], unit: 'AOA ') %>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="alert alert-success mb-0">
+                <i class="bi bi-check-circle"></i>
+                <strong>Margem de lucro adequada.</strong>
+                Todos os itens estão dentro ou acima da margem esperada de
+                <%= number_to_percentage(analysis[:expected_margin], precision: 0) %>.
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </div>
   </div>
 </div>

@@ -38,6 +38,7 @@ class EstimatesController < ApplicationController
     @estimate.status = 'rascunho'
 
     if @estimate.save
+      PricingNotifier.new(@estimate, user: current_user).notify_if_needed
       redirect_to @estimate, notice: 'Orçamento criado como rascunho. Envie para aprovação quando estiver pronto.'
     else
       @customers = Customer.order(:name)
@@ -59,6 +60,7 @@ class EstimatesController < ApplicationController
     authorize @estimate
 
     if @estimate.update(estimate_params)
+      PricingNotifier.new(@estimate, user: current_user).notify_if_needed
       redirect_to @estimate, notice: 'Orçamento atualizado com sucesso.'
     else
       @customers = Customer.order(:name)
@@ -143,6 +145,20 @@ class EstimatesController < ApplicationController
               disposition: 'inline'
   end
 
+  def validate_pricing
+    @estimate = Estimate.new(estimate_params)
+    @estimate.created_by_user = current_user
+    authorize @estimate
+
+    analyzer = PricingAnalyzer.new(@estimate)
+    analysis = analyzer.analyze
+
+    render json: {
+      valid: !analysis[:has_warnings],
+      analysis: analysis.slice(:expected_margin, :actual_margin_percentage, :margin_deficit, :below_margin_items, :severity)
+    }
+  end
+
   private
 
   def set_estimate
@@ -152,6 +168,7 @@ class EstimatesController < ApplicationController
   def estimate_params
     params.require(:estimate).permit(
       :customer_id, :valid_until, :notes,
+      :discount_percentage, :discount_justification,
       estimate_items_attributes: [:id, :product_id, :quantity, :unit_price, :subtotal, :_destroy]
     )
   end

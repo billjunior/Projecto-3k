@@ -132,6 +132,53 @@
     </div>
   </div>
 
+  <%= form.hidden_field :total_value, id: 'total_value_field' %>
+
+  <!-- Discount Section -->
+  <div class="card mb-3" data-controller="pricing-validator">
+    <div class="card-header bg-light">
+      <h5 class="mb-0"><i class="bi bi-percent"></i> Desconto</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3">
+          <%= form.label :discount_percentage, 'Desconto (%)', class: 'form-label' %>
+          <%= form.number_field :discount_percentage,
+              class: 'form-control',
+              step: '0.01',
+              min: '0',
+              max: '100',
+              id: 'discount_percentage_field',
+              data: {
+                pricing_validator_target: 'discountInput',
+                action: 'input->pricing-validator#validateDiscount'
+              } %>
+        </div>
+
+        <div class="col-md-9">
+          <%= form.label :discount_justification, 'Justificação (obrigatório se desconto > 0)', class: 'form-label' %>
+          <%= form.text_area :discount_justification,
+              rows: 2,
+              class: 'form-control',
+              placeholder: 'Mínimo 10 caracteres...',
+              data: {
+                pricing_validator_target: 'justification',
+                action: 'input->pricing-validator#validateJustification'
+              } %>
+          <small class="text-muted">Se aplicar desconto, deve justificar com pelo menos 10 caracteres.</small>
+        </div>
+      </div>
+
+      <!-- Real-time warnings -->
+      <div class="mt-3" data-pricing-validator-target="warningContainer" style="display: none;">
+        <div class="alert alert-warning mb-0">
+          <strong><i class="bi bi-exclamation-triangle"></i> Avisos de Preço:</strong>
+          <div data-pricing-validator-target="warningContent"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="d-flex gap-2">
     <%= form.submit 'Guardar Fatura', class: 'btn btn-primary' %>
     <%= link_to 'Cancelar', invoices_path, class: 'btn btn-secondary' %>
@@ -140,29 +187,56 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  let itemIndex = document.querySelectorAll('.invoice-item').length;
+
+  // Calculate subtotals and total with discount
   function calculateTotals() {
-    let grandTotal = 0;
+    let subtotal = 0;
 
     document.querySelectorAll('.invoice-item').forEach(item => {
-      if (item.querySelector('.item-destroy').value === 'true') return;
+      const destroyField = item.querySelector('.item-destroy');
+      if (!destroyField || destroyField.value === 'true') return;
 
-      const quantity = parseFloat(item.querySelector('.quantity-input').value) || 0;
-      const price = parseFloat(item.querySelector('.price-input').value) || 0;
-      const subtotal = quantity * price;
+      const quantityInput = item.querySelector('.quantity-input');
+      const priceInput = item.querySelector('.price-input');
+      const subtotalInput = item.querySelector('.subtotal-input');
 
-      item.querySelector('.subtotal-input').value = subtotal.toFixed(2);
-      grandTotal += subtotal;
+      const quantity = parseFloat(quantityInput?.value) || 0;
+      const price = parseFloat(priceInput?.value) || 0;
+      const itemSubtotal = quantity * price;
+
+      if (subtotalInput) {
+        subtotalInput.value = itemSubtotal.toFixed(2);
+      }
+      subtotal += itemSubtotal;
     });
 
-    document.getElementById('grand-total').textContent = grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' AOA';
+    // Apply discount
+    const discountPercentageField = document.getElementById('discount_percentage_field');
+    const discountPercentage = parseFloat(discountPercentageField?.value) || 0;
+    const discountAmount = (subtotal * discountPercentage / 100);
+    const grandTotal = subtotal - discountAmount;
+
+    const grandTotalElement = document.getElementById('grand-total');
+    const totalValueField = document.getElementById('total_value_field');
+
+    if (grandTotalElement) {
+      grandTotalElement.textContent = 'AOA ' + grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    if (totalValueField) {
+      totalValueField.value = grandTotal.toFixed(2);
+    }
   }
 
+  // Add event listeners to quantity, price, and discount inputs
   document.addEventListener('input', function(e) {
-    if (e.target.matches('.quantity-input') || e.target.matches('.price-input')) {
+    if (e.target.matches('.quantity-input') || e.target.matches('.price-input') || e.target.id === 'discount_percentage_field') {
       calculateTotals();
     }
   });
 
+  // Remove item
   document.addEventListener('click', function(e) {
     if (e.target.closest('.remove-item')) {
       const item = e.target.closest('.invoice-item');
@@ -172,6 +246,80 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  // Get product options for new items
+  function getProductOptions() {
+    const firstSelect = document.querySelector('.invoice-item select[name*="[product_id]"]');
+    if (!firstSelect) {
+      return '<option value="">Selecione (opcional)</option>';
+    }
+    return Array.from(firstSelect.options).map(opt =>
+      `<option value="${opt.value}">${opt.text}</option>`
+    ).join('');
+  }
+
+  // Add new invoice item
+  const addItemButton = document.getElementById('add-invoice-item');
+  if (addItemButton) {
+    addItemButton.addEventListener('click', function() {
+      const container = document.getElementById('invoice-items');
+      const newItem = document.createElement('div');
+      newItem.className = 'invoice-item border rounded p-3 mb-3';
+      newItem.innerHTML = `
+        <input type="hidden" name="invoice[invoice_items_attributes][${itemIndex}][_destroy]" value="false" class="item-destroy">
+
+        <div class="row">
+          <div class="col-md-4">
+            <div class="mb-2">
+              <label class="form-label">Produto</label>
+              <select name="invoice[invoice_items_attributes][${itemIndex}][product_id]" class="form-select">
+                ${getProductOptions()}
+              </select>
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <div class="mb-2">
+              <label class="form-label">Descrição</label>
+              <input type="text" name="invoice[invoice_items_attributes][${itemIndex}][description]" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="col-md-1">
+            <div class="mb-2">
+              <label class="form-label">Qtd</label>
+              <input type="number" name="invoice[invoice_items_attributes][${itemIndex}][quantity]" class="form-control quantity-input" min="1" value="1" required>
+            </div>
+          </div>
+
+          <div class="col-md-2">
+            <div class="mb-2">
+              <label class="form-label">Preço</label>
+              <input type="number" name="invoice[invoice_items_attributes][${itemIndex}][unit_price]" class="form-control price-input" step="0.01" min="0" value="0" required>
+            </div>
+          </div>
+
+          <div class="col-md-1">
+            <div class="mb-2">
+              <label class="form-label">Total</label>
+              <input type="number" name="invoice[invoice_items_attributes][${itemIndex}][subtotal]" class="form-control subtotal-input" step="0.01" value="0" readonly>
+            </div>
+          </div>
+
+          <div class="col-md-1 d-flex align-items-end">
+            <button type="button" class="btn btn-danger mb-2 remove-item">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(newItem);
+      itemIndex++;
+      calculateTotals();
+    });
+  }
+
+  // Initial calculation
   calculateTotals();
 });
 </script>

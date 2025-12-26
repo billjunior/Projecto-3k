@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_26_100319) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_26_200430) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -95,6 +95,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_26_100319) do
     t.jsonb "bank_accounts", default: []
     t.string "director_general_email"
     t.string "financial_director_email"
+    t.decimal "default_profit_margin", precision: 5, scale: 2, default: "65.0", null: false
     t.index ["tenant_id"], name: "index_company_settings_on_tenant_id"
   end
 
@@ -178,10 +179,18 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_26_100319) do
     t.string "approved_by"
     t.datetime "approved_at"
     t.bigint "tenant_id"
+    t.decimal "discount_percentage", precision: 5, scale: 2, default: "0.0"
+    t.decimal "discount_amount", precision: 10, scale: 2, default: "0.0"
+    t.text "discount_justification"
+    t.decimal "subtotal_before_discount", precision: 10, scale: 2
+    t.boolean "below_margin_warned", default: false
+    t.datetime "below_margin_warned_at"
+    t.index ["below_margin_warned"], name: "index_estimates_on_below_margin_warned"
     t.index ["created_by_user_id"], name: "index_estimates_on_created_by_user_id"
     t.index ["customer_id"], name: "index_estimates_on_customer_id"
     t.index ["estimate_number"], name: "index_estimates_on_estimate_number", unique: true
     t.index ["status"], name: "index_estimates_on_status"
+    t.index ["tenant_id", "below_margin_warned"], name: "index_estimates_on_tenant_id_and_below_margin_warned"
     t.index ["tenant_id", "status"], name: "index_estimates_on_tenant_and_status"
     t.index ["tenant_id"], name: "index_estimates_on_tenant_id"
   end
@@ -246,11 +255,19 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_26_100319) do
     t.date "invoice_date"
     t.date "due_date"
     t.bigint "tenant_id"
+    t.decimal "discount_percentage", precision: 5, scale: 2, default: "0.0"
+    t.decimal "discount_amount", precision: 10, scale: 2, default: "0.0"
+    t.text "discount_justification"
+    t.decimal "subtotal_before_discount", precision: 10, scale: 2
+    t.boolean "below_margin_warned", default: false
+    t.datetime "below_margin_warned_at"
+    t.index ["below_margin_warned"], name: "index_invoices_on_below_margin_warned"
     t.index ["created_by_user_id"], name: "index_invoices_on_created_by_user_id"
     t.index ["customer_id"], name: "index_invoices_on_customer_id"
     t.index ["invoice_number"], name: "index_invoices_on_invoice_number", unique: true
     t.index ["source_type", "source_id"], name: "index_invoices_on_source_type_and_source_id"
     t.index ["status"], name: "index_invoices_on_status"
+    t.index ["tenant_id", "below_margin_warned"], name: "index_invoices_on_tenant_id_and_below_margin_warned"
     t.index ["tenant_id", "status"], name: "index_invoices_on_tenant_and_status"
     t.index ["tenant_id"], name: "index_invoices_on_tenant_id"
   end
@@ -445,6 +462,30 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_26_100319) do
     t.index ["tenant_id"], name: "index_price_rules_on_tenant_id"
   end
 
+  create_table "pricing_warnings", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.string "warnable_type", null: false
+    t.bigint "warnable_id", null: false
+    t.bigint "created_by_user_id"
+    t.string "warning_type", null: false
+    t.decimal "expected_margin", precision: 5, scale: 2
+    t.decimal "actual_margin", precision: 5, scale: 2
+    t.decimal "margin_deficit", precision: 5, scale: 2
+    t.decimal "profit_loss", precision: 10, scale: 2
+    t.jsonb "item_breakdown", default: {}
+    t.text "justification"
+    t.boolean "director_notified", default: false
+    t.datetime "director_notified_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_user_id"], name: "index_pricing_warnings_on_created_by_user_id"
+    t.index ["tenant_id", "warning_type"], name: "index_pricing_warnings_on_tenant_id_and_warning_type"
+    t.index ["tenant_id"], name: "index_pricing_warnings_on_tenant_id"
+    t.index ["warnable_type", "warnable_id"], name: "index_pricing_warnings_on_warnable"
+    t.index ["warnable_type", "warnable_id"], name: "index_pricing_warnings_on_warnable_type_and_warnable_id"
+    t.index ["warning_type"], name: "index_pricing_warnings_on_warning_type"
+  end
+
   create_table "products", force: :cascade do |t|
     t.string "name"
     t.string "category"
@@ -627,6 +668,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_26_100319) do
   add_foreign_key "payments", "users", column: "received_by_user_id"
   add_foreign_key "price_rules", "products"
   add_foreign_key "price_rules", "tenants"
+  add_foreign_key "pricing_warnings", "tenants"
+  add_foreign_key "pricing_warnings", "users", column: "created_by_user_id"
   add_foreign_key "products", "tenants"
   add_foreign_key "services", "tenants"
   add_foreign_key "tasks", "tenants"

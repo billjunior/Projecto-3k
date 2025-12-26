@@ -53,4 +53,19 @@ class EstimatePolicy < ApplicationPolicy
   def convert_to_job?
     approve?  # Only admins can convert to job
   end
+
+  def apply_discount?
+    # Commercial, admin, super_admin can apply discounts
+    user.super_admin? || user.admin? || user.commercial?
+  end
+
+  def view_pricing_analysis?
+    # Directors and financial directors can view detailed pricing analysis
+    user.super_admin? || user.admin? || user.role == 'financeiro'
+  end
+
+  def validate_pricing?
+    # Anyone who can create/update can validate pricing
+    create? || update?
+  end
 end

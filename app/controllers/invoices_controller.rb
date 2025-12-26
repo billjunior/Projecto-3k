@@ -29,6 +29,7 @@ class InvoicesController < ApplicationController
     @invoice.status = 'pendente'
 
     if @invoice.save
+      PricingNotifier.new(@invoice, user: current_user).notify_if_needed
       redirect_to @invoice, notice: 'Fatura criada com sucesso.'
     else
       @customers = Customer.order(:name)
@@ -47,6 +48,7 @@ class InvoicesController < ApplicationController
     authorize @invoice
 
     if @invoice.update(invoice_params)
+      PricingNotifier.new(@invoice, user: current_user).notify_if_needed
       redirect_to @invoice, notice: 'Fatura atualizada com sucesso.'
     else
       @customers = Customer.order(:name)
@@ -70,6 +72,20 @@ class InvoicesController < ApplicationController
     send_data pdf, filename: "fatura_#{@invoice.id.to_s.rjust(6, '0')}.pdf",
                    type: 'application/pdf',
                    disposition: 'inline'
+  end
+
+  def validate_pricing
+    @invoice = Invoice.new(invoice_params)
+    @invoice.created_by_user = current_user
+    authorize @invoice
+
+    analyzer = PricingAnalyzer.new(@invoice)
+    analysis = analyzer.analyze
+
+    render json: {
+      valid: !analysis[:has_warnings],
+      analysis: analysis.slice(:expected_margin, :actual_margin_percentage, :margin_deficit, :below_margin_items, :severity)
+    }
   end
 
   def pricing_calculator
@@ -106,6 +122,7 @@ class InvoicesController < ApplicationController
   def invoice_params
     params.require(:invoice).permit(
       :customer_id, :invoice_type, :invoice_date, :due_date, :total_value,
+      :discount_percentage, :discount_justification,
       invoice_items_attributes: [:id, :product_id, :description, :quantity, :unit_price, :subtotal, :_destroy]
     )
   end

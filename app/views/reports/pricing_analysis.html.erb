@@ -1,0 +1,577 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><i class="bi bi-bar-chart-line"></i> Análise de Preços</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><%= link_to 'Painel', root_path %></li>
+          <li class="breadcrumb-item"><%= link_to 'Relatórios', reports_path %></li>
+          <li class="breadcrumb-item active">Análise de Preços</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto no-print">
+      <%= link_to pricing_analysis_reports_path(format: :pdf, start_date: @start_date, end_date: @end_date),
+                  class: 'btn btn-danger me-2', target: '_blank' do %>
+        <i class="bi bi-file-pdf"></i> Exportar PDF
+      <% end %>
+      <button onclick="window.print()" class="btn btn-primary">
+        <i class="bi bi-printer"></i> Imprimir
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros de Data -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: pricing_analysis_reports_path, method: :get, local: true, class: 'row g-3' do |f| %>
+        <div class="col-md-4">
+          <%= f.label :start_date, 'Data Início', class: 'form-label' %>
+          <%= f.date_field :start_date, value: @start_date, class: 'form-control' %>
+        </div>
+        <div class="col-md-4">
+          <%= f.label :end_date, 'Data Fim', class: 'form-label' %>
+          <%= f.date_field :end_date, value: @end_date, class: 'form-control' %>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <%= f.submit 'Filtrar', class: 'btn btn-primary' %>
+          <%= link_to 'Limpar', pricing_analysis_reports_path, class: 'btn btn-secondary ms-2' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Métricas de Resumo -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card border-danger">
+        <div class="card-body">
+          <h6 class="text-muted mb-2"><i class="bi bi-exclamation-triangle"></i> Total de Avisos</h6>
+          <h2 class="text-danger mb-0"><%= @total_warnings %></h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-danger">
+        <div class="card-body">
+          <h6 class="text-muted mb-2"><i class="bi bi-currency-dollar"></i> Perda Total de Lucro</h6>
+          <h2 class="text-danger mb-0">
+            <%= number_to_currency(@total_profit_loss, unit: 'AOA ', precision: 0) %>
+          </h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-warning">
+        <div class="card-body">
+          <h6 class="text-muted mb-2"><i class="bi bi-percent"></i> Défice Médio de Margem</h6>
+          <h2 class="text-warning mb-0">
+            <%= number_to_percentage(@avg_margin_deficit, precision: 2) %>
+          </h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-info">
+        <div class="card-body">
+          <h6 class="text-muted mb-2"><i class="bi bi-tag"></i> Total de Descontos</h6>
+          <h2 class="text-info mb-0">
+            <%= number_to_currency(@total_discount_amount, unit: 'AOA ', precision: 0) %>
+          </h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seleção de Gráficos -->
+  <div class="card mb-4 no-print">
+    <div class="card-header bg-light">
+      <h5 class="mb-0"><i class="bi bi-layout-three-columns"></i> Selecione os Gráficos a Visualizar</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chart1" checked onclick="toggleChart('chart-1')">
+            <label class="form-check-label" for="chart1">1. Avisos por Dia (Linha)</label>
+          </div>
+        </div>
+        <div class="col-md-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chart2" checked onclick="toggleChart('chart-2')">
+            <label class="form-check-label" for="chart2">2. Avisos por Tipo (Pizza)</label>
+          </div>
+        </div>
+        <div class="col-md-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chart3" checked onclick="toggleChart('chart-3')">
+            <label class="form-check-label" for="chart3">3. Perda de Lucro por Dia (Área)</label>
+          </div>
+        </div>
+        <div class="col-md-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chart4" checked onclick="toggleChart('chart-4')">
+            <label class="form-check-label" for="chart4">4. Avisos por Severidade (Coluna)</label>
+          </div>
+        </div>
+        <div class="col-md-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chart5" checked onclick="toggleChart('chart-5')">
+            <label class="form-check-label" for="chart5">5. Avisos por Mês (Barra)</label>
+          </div>
+        </div>
+        <div class="col-md-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chart6" checked onclick="toggleChart('chart-6')">
+            <label class="form-check-label" for="chart6">6. Orçamentos vs Faturas (Coluna)</label>
+          </div>
+        </div>
+        <div class="col-md-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chart7" checked onclick="toggleChart('chart-7')">
+            <label class="form-check-label" for="chart7">7. Défice Médio por Dia (Linha)</label>
+          </div>
+        </div>
+        <div class="col-md-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chart8" checked onclick="toggleChart('chart-8')">
+            <label class="form-check-label" for="chart8">8. Top 5 Clientes (Barra)</label>
+          </div>
+        </div>
+        <div class="col-md-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chart9" checked onclick="toggleChart('chart-9')">
+            <label class="form-check-label" for="chart9">9. Avisos por Hora (Coluna)</label>
+          </div>
+        </div>
+        <div class="col-md-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chart10" checked onclick="toggleChart('chart-10')">
+            <label class="form-check-label" for="chart10">10. Distribuição Severidade (Pizza)</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="row mb-4" id="chart-1">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-graph-up"></i> 1. Avisos por Dia (Linha)</h5>
+        </div>
+        <div class="card-body">
+          <%= line_chart @warnings_by_day,
+              library: {
+                backgroundColor: '#f8f9fa',
+                scales: {
+                  y: { beginAtZero: true }
+                }
+              } %>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6" id="chart-2">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-pie-chart"></i> 2. Avisos por Tipo (Pizza)</h5>
+        </div>
+        <div class="card-body">
+          <%= pie_chart @warnings_by_type.transform_keys { |k|
+            k == 'below_margin' ? 'Margem Baixa' : 'Desconto Alto'
+          },
+          library: {
+            backgroundColor: '#f8f9fa'
+          } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4" id="chart-3">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-cash-coin"></i> 3. Perda de Lucro por Dia (Área)</h5>
+        </div>
+        <div class="card-body">
+          <%= area_chart @profit_loss_by_day,
+              prefix: 'AOA ',
+              library: {
+                backgroundColor: '#f8f9fa',
+                scales: {
+                  y: { beginAtZero: true }
+                }
+              } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6" id="chart-4">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-bar-chart"></i> 4. Avisos por Severidade (Coluna)</h5>
+        </div>
+        <div class="card-body">
+          <%= column_chart @warnings_by_severity.transform_keys { |k|
+            case k
+            when 'low' then 'Baixa'
+            when 'medium' then 'Média'
+            when 'high' then 'Alta'
+            else k.to_s.capitalize
+            end
+          },
+          library: {
+            backgroundColor: '#f8f9fa',
+            colors: ['#28a745', '#ffc107', '#dc3545']
+          } %>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6" id="chart-5">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-bar-chart-fill"></i> 5. Avisos por Mês (Barra)</h5>
+        </div>
+        <div class="card-body">
+          <%= bar_chart @warnings_by_month,
+              library: {
+                backgroundColor: '#f8f9fa',
+                scales: {
+                  x: { beginAtZero: true }
+                }
+              } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6" id="chart-6">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-bar-chart-steps"></i> 6. Orçamentos vs Faturas com Problemas (Coluna)</h5>
+        </div>
+        <div class="card-body">
+          <%= column_chart @problems_by_document_type,
+              library: {
+                backgroundColor: '#f8f9fa',
+                colors: ['#007bff', '#28a745']
+              } %>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6" id="chart-7">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-graph-down"></i> 7. Défice Médio de Margem por Dia (Linha)</h5>
+        </div>
+        <div class="card-body">
+          <%= line_chart @avg_discount_by_day,
+              suffix: '%',
+              library: {
+                backgroundColor: '#f8f9fa',
+                scales: {
+                  y: { beginAtZero: true }
+                },
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)'
+              } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6" id="chart-8">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-people"></i> 8. Top 5 Clientes com Mais Avisos (Barra)</h5>
+        </div>
+        <div class="card-body">
+          <%= bar_chart @top_customers_warnings,
+              library: {
+                backgroundColor: '#f8f9fa',
+                scales: {
+                  x: { beginAtZero: true }
+                },
+                indexAxis: 'y'
+              } %>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6" id="chart-9">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-clock"></i> 9. Avisos por Hora do Dia (Coluna)</h5>
+        </div>
+        <div class="card-body">
+          <%= column_chart @warnings_by_hour.transform_keys { |h| "#{h}h" },
+              library: {
+                backgroundColor: '#f8f9fa',
+                scales: {
+                  y: { beginAtZero: true }
+                }
+              } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6" id="chart-10">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-pie-chart-fill"></i> 10. Distribuição de Severidade (Pizza)</h5>
+        </div>
+        <div class="card-body">
+          <%= pie_chart @warnings_by_severity.transform_keys { |k|
+            case k
+            when 'low' then 'Baixa'
+            when 'medium' then 'Média'
+            when 'high' then 'Alta'
+            else k.to_s.capitalize
+            end
+          },
+          library: {
+            backgroundColor: '#f8f9fa',
+            colors: ['#28a745', '#ffc107', '#dc3545']
+          } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top 10 Documentos com Maior Perda -->
+  <% if @top_loss_warnings.any? %>
+    <div class="card mb-4">
+      <div class="card-header bg-danger text-white">
+        <h5 class="mb-0"><i class="bi bi-trophy"></i> Top 10 Documentos com Maior Perda de Lucro</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Documento</th>
+                <th>Cliente</th>
+                <th>Criado por</th>
+                <th class="text-center">Margem Esperada</th>
+                <th class="text-center">Margem Real</th>
+                <th class="text-end">Perda de Lucro</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @top_loss_warnings.each do |warning| %>
+                <tr>
+                  <td>
+                    <% if warning.warnable.is_a?(Estimate) %>
+                      <span class="badge bg-primary">Orçamento</span>
+                      <%= warning.warnable.estimate_number %>
+                    <% else %>
+                      <span class="badge bg-success">Fatura</span>
+                      <%= warning.warnable.invoice_number %>
+                    <% end %>
+                  </td>
+                  <td><%= warning.warnable.customer.name %></td>
+                  <td><small class="text-muted"><%= warning.created_by_user&.name || 'Sistema' %></small></td>
+                  <td class="text-center text-success">
+                    <%= number_to_percentage(warning.expected_margin, precision: 0) %>
+                  </td>
+                  <td class="text-center text-danger">
+                    <%= number_to_percentage(warning.actual_margin, precision: 2) %>
+                  </td>
+                  <td class="text-end text-danger">
+                    <strong><%= number_to_currency(warning.profit_loss, unit: 'AOA ') %></strong>
+                  </td>
+                  <td>
+                    <% if warning.warnable.is_a?(Estimate) %>
+                      <%= link_to 'Ver', warning.warnable, class: 'btn btn-sm btn-primary' %>
+                    <% else %>
+                      <%= link_to 'Ver', warning.warnable, class: 'btn btn-sm btn-success' %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Orçamentos com Problemas -->
+  <div class="card mb-4">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Orçamentos com Descontos / Margem Baixa</h5>
+      <span class="badge bg-primary"><%= @problem_estimates.total_count %></span>
+    </div>
+    <div class="card-body p-0">
+      <% if @problem_estimates.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Número</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th class="text-center">Desconto</th>
+                <th class="text-end">Valor Total</th>
+                <th class="text-center">Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @problem_estimates.each do |estimate| %>
+                <% analysis = estimate.pricing_analysis %>
+                <tr>
+                  <td><%= estimate.estimate_number %></td>
+                  <td><%= estimate.customer.name %></td>
+                  <td><%= estimate.created_at.strftime('%d/%m/%Y') %></td>
+                  <td class="text-center">
+                    <% if estimate.discount_percentage.present? && estimate.discount_percentage > 0 %>
+                      <span class="badge bg-warning">
+                        <%= number_to_percentage(estimate.discount_percentage, precision: 2) %>
+                      </span>
+                    <% else %>
+                      -
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <%= number_to_currency(estimate.total_value, unit: 'AOA ') %>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-<%= analysis[:actual_margin_percentage] < analysis[:expected_margin] ? 'danger' : 'success' %>">
+                      Margem: <%= number_to_percentage(analysis[:actual_margin_percentage], precision: 1) %>
+                    </span>
+                  </td>
+                  <td>
+                    <%= link_to 'Ver', estimate, class: 'btn btn-sm btn-primary' %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer">
+          <%= paginate @problem_estimates, param_name: :estimates_page %>
+        </div>
+      <% else %>
+        <p class="text-muted p-3 mb-0">Nenhum orçamento com problemas de preço no período selecionado.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Faturas com Problemas -->
+  <div class="card mb-4">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="bi bi-receipt"></i> Faturas com Descontos / Margem Baixa</h5>
+      <span class="badge bg-success"><%= @problem_invoices.total_count %></span>
+    </div>
+    <div class="card-body p-0">
+      <% if @problem_invoices.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Número</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th class="text-center">Desconto</th>
+                <th class="text-end">Valor Total</th>
+                <th class="text-center">Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @problem_invoices.each do |invoice| %>
+                <% analysis = invoice.pricing_analysis %>
+                <tr>
+                  <td><%= invoice.invoice_number %></td>
+                  <td><%= invoice.customer.name %></td>
+                  <td><%= invoice.invoice_date.strftime('%d/%m/%Y') %></td>
+                  <td class="text-center">
+                    <% if invoice.discount_percentage.present? && invoice.discount_percentage > 0 %>
+                      <span class="badge bg-warning">
+                        <%= number_to_percentage(invoice.discount_percentage, precision: 2) %>
+                      </span>
+                    <% else %>
+                      -
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <%= number_to_currency(invoice.total_value, unit: 'AOA ') %>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-<%= analysis[:actual_margin_percentage] < analysis[:expected_margin] ? 'danger' : 'success' %>">
+                      Margem: <%= number_to_percentage(analysis[:actual_margin_percentage], precision: 1) %>
+                    </span>
+                  </td>
+                  <td>
+                    <%= link_to 'Ver', invoice, class: 'btn btn-sm btn-success' %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer">
+          <%= paginate @problem_invoices, param_name: :invoices_page %>
+        </div>
+      <% else %>
+        <p class="text-muted p-3 mb-0">Nenhuma fatura com problemas de preço no período selecionado.</p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleChart(chartId) {
+  const chart = document.getElementById(chartId);
+  if (chart) {
+    chart.style.display = chart.style.display === 'none' ? '' : 'none';
+  }
+}
+</script>
+
+<style>
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  body {
+    font-size: 12pt;
+  }
+
+  h1 {
+    font-size: 18pt;
+  }
+
+  h5 {
+    font-size: 14pt;
+  }
+
+  .container-fluid {
+    max-width: 100%;
+  }
+
+  .breadcrumb {
+    display: none;
+  }
+
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+}
+</style>

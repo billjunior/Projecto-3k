@@ -1,0 +1,41 @@
+⚠️ ALERTA DE PREÇO
+================================================================================
+
+Foi criado um documento com margem de lucro abaixo do configurado.
+
+INFORMAÇÕES DO DOCUMENTO
+--------------------------------------------------------------------------------
+Tipo:           <%= @document_type %>
+Número:         <%= @document_number %>
+Cliente:        <%= @document.customer.name %>
+Valor Total:    <%= number_to_currency(@document.total_value, unit: 'AOA ', separator: ',', delimiter: '.') %>
+Criado por:     <%= @document.created_by_user&.name || 'Sistema' %>
+
+ANÁLISE DE MARGEM DE LUCRO
+--------------------------------------------------------------------------------
+Margem Esperada:            <%= number_to_percentage(@warning.expected_margin, precision: 0) %>
+Margem Real:                <%= number_to_percentage(@warning.actual_margin, precision: 2) %>
+Défice de Margem:           <%= number_to_percentage(@warning.margin_deficit, precision: 2) %>
+Perda Estimada de Lucro:    <%= number_to_currency(@warning.profit_loss, unit: 'AOA ', separator: ',', delimiter: '.') %>
+
+<% if @warning.item_breakdown.present? && @warning.item_breakdown['below_margin_items'].present? %>
+ITENS ABAIXO DA MARGEM
+--------------------------------------------------------------------------------
+<% @warning.item_breakdown['below_margin_items'].each do |item| %>
+- <%= item['product_name'] %>: Margem <%= item['margin_percentage'] %>% (abaixo de <%= @warning.expected_margin %>%) - Perda: <%= number_to_currency(item['profit_loss'], unit: 'AOA ', separator: ',', delimiter: '.') %>
+<% end %>
+
+<% end %>
+<% if @document.discount_justification.present? %>
+JUSTIFICAÇÃO DO DESCONTO
+--------------------------------------------------------------------------------
+<%= @document.discount_justification %>
+
+<% end %>
+Ver documento completo: <%= @document.is_a?(Estimate) ? estimate_url(@document) : invoice_url(@document) %>
+
+--------------------------------------------------------------------------------
+CRM 3K - Sistema de Gestão
+Email automático - Não responda a esta mensagem
+
+O documento em PDF está anexado a este email para sua referência.

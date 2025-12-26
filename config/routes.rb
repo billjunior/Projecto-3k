@@ -52,6 +52,9 @@ Rails.application.routes.draw do
   end
 
   resources :estimates do
+    collection do
+      post :validate_pricing
+    end
     member do
       post :submit_for_approval
       post :approve
@@ -97,6 +100,7 @@ Rails.application.routes.draw do
     collection do
       get :pricing_calculator
       post :calculate_price
+      post :validate_pricing
     end
     member do
       get :pdf
@@ -118,6 +122,7 @@ Rails.application.routes.draw do
       get :daily_revenues
       get :training_courses
       get :contact_sources
+      get :pricing_analysis
     end
   end
 

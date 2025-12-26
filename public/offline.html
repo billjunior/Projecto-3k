@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - CRM 3K</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #0a1628 0%, #0f1f3a 50%, #0a1628 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .offline-container {
+      text-align: center;
+      padding: 40px;
+      max-width: 500px;
+    }
+    .offline-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 15px;
+    }
+    p {
+      font-size: 18px;
+      color: #a0aec0;
+      margin-bottom: 30px;
+    }
+    .retry-button {
+      background: #ff6b35;
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .retry-button:hover {
+      background: #ff8555;
+      transform: translateY(-2px);
+    }
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .online {
+      background: rgba(72, 187, 120, 0.2);
+      color: #9ae6b4;
+    }
+  </style>
+</head>
+<body>
+  <div class="offline-container">
+    <div class="offline-icon">📡</div>
+    <h1>Sem Conexão</h1>
+    <p>Não foi possível conectar ao servidor. Verifique sua conexão com a internet.</p>
+
+    <div class="status" id="status">
+      <span id="status-text">Status: Offline</span>
+    </div>
+
+    <button class="retry-button" onclick="retryConnection()">
+      Tentar Novamente
+    </button>
+  </div>
+
+  <script>
+    function updateStatus(online) {
+      const statusEl = document.getElementById('status');
+      const statusText = document.getElementById('status-text');
+
+      if (online) {
+        statusEl.classList.add('online');
+        statusText.textContent = 'Status: Online - Reconectando...';
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        statusEl.classList.remove('online');
+        statusText.textContent = 'Status: Offline';
+      }
+    }
+
+    function retryConnection() {
+      fetch('/')
+        .then(() => {
+          updateStatus(true);
+        })
+        .catch(() => {
+          updateStatus(false);
+          alert('Ainda sem conexão. Tente novamente mais tarde.');
+        });
+    }
+
+    // Detectar quando reconectar
+    window.addEventListener('online', () => {
+      updateStatus(true);
+    });
+
+    window.addEventListener('offline', () => {
+      updateStatus(false);
+    });
+
+    // Verificar status inicial
+    updateStatus(navigator.onLine);
+  </script>
+</body>
+</html>

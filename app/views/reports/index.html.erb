@@ -190,5 +190,28 @@
         </div>
       </div>
     </div>
+
+    <!-- Pricing Analysis Report -->
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm border-warning">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0"><i class="bi bi-calculator"></i> Análise de Preços</h5>
+        </div>
+        <div class="card-body">
+          <h6 class="card-title">Sistema de Precificação</h6>
+          <p class="card-text text-muted">Análise de margens de lucro e descontos aplicados</p>
+          <ul class="list-unstyled mt-3">
+            <li><i class="bi bi-check-circle text-success"></i> Gráficos de avisos de margem</li>
+            <li><i class="bi bi-check-circle text-success"></i> Perda de lucro por período</li>
+            <li><i class="bi bi-check-circle text-success"></i> Orçamentos e faturas problemáticos</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <%= link_to pricing_analysis_reports_path, class: 'btn btn-warning w-100' do %>
+            <i class="bi bi-bar-chart-line"></i> Ver Análise e Gráficos
+          <% end %>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

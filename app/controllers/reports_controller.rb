@@ -357,6 +357,139 @@ class ReportsController < ApplicationController
     end
   end
 
+  def pricing_analysis
+    # Relatório de análise de preços (descontos e margens abaixo do esperado)
+    @start_date = params[:start_date] ? Date.parse(params[:start_date]) : Date.today.beginning_of_month
+    @end_date = params[:end_date] ? Date.parse(params[:end_date]) : Date.today.end_of_month
+
+    # Orçamentos com problemas (descontos ou margem abaixo)
+    @problem_estimates = Estimate.where(created_at: @start_date..@end_date)
+                                  .where('discount_percentage > 0 OR below_margin_warned = true')
+                                  .includes(:customer, :created_by_user, estimate_items: :product)
+                                  .order(created_at: :desc)
+                                  .page(params[:estimates_page]).per(20)
+
+    # Faturas com problemas
+    @problem_invoices = Invoice.where(created_at: @start_date..@end_date)
+                                .where('discount_percentage > 0 OR below_margin_warned = true')
+                                .includes(:customer, :created_by_user, invoice_items: :product)
+                                .order(created_at: :desc)
+                                .page(params[:invoices_page]).per(20)
+
+    # Base query para avisos (sem ordenação para permitir agregações)
+    warnings_base = PricingWarning.where(created_at: @start_date..@end_date)
+
+    # Avisos ordenados para exibição
+    @warnings = warnings_base.preload(:warnable)
+                             .includes(:created_by_user)
+                             .order(created_at: :desc)
+
+    # Estatísticas agregadas (usa base query sem ordenação)
+    @total_warnings = warnings_base.count
+    @total_profit_loss = warnings_base.sum(:profit_loss) || 0
+    @avg_margin_deficit = warnings_base.where('margin_deficit > 0').average(:margin_deficit) || 0
+    @warnings_by_type = warnings_base.group(:warning_type).count
+
+    # Para severity, precisamos carregar os registros (não é campo do DB)
+    all_warnings = warnings_base.to_a
+    @warnings_by_severity = all_warnings.group_by { |w| w.severity }.transform_values(&:count)
+
+    # Top 10 documentos com maior perda de lucro
+    @top_loss_warnings = warnings_base.where('profit_loss > 0')
+                                      .order(profit_loss: :desc)
+                                      .limit(10)
+                                      .preload(:warnable)
+
+    # Estatísticas de desconto
+    all_problem_estimates = Estimate.where(created_at: @start_date..@end_date)
+                                     .where('discount_percentage > 0 OR below_margin_warned = true')
+    all_problem_invoices = Invoice.where(created_at: @start_date..@end_date)
+                                   .where('discount_percentage > 0 OR below_margin_warned = true')
+
+    @total_discount_amount = (all_problem_estimates.sum(:discount_amount) || 0) +
+                             (all_problem_invoices.sum(:discount_amount) || 0)
+    @avg_discount_percentage = (all_problem_estimates.where('discount_percentage > 0').average(:discount_percentage) || 0)
+
+    # Chart data (usa base query sem ordenação)
+    @warnings_by_day = warnings_base.group_by_day(:created_at, format: '%d/%m', time_zone: 'Africa/Luanda').count
+    @profit_loss_by_day = warnings_base.group_by_day(:created_at, format: '%d/%m', time_zone: 'Africa/Luanda').sum(:profit_loss)
+
+    # Dados adicionais para gráficos
+    @avg_discount_by_day = warnings_base.where('margin_deficit > 0')
+                                        .group_by_day(:created_at, format: '%d/%m', time_zone: 'Africa/Luanda')
+                                        .average(:margin_deficit)
+
+    @warnings_by_month = warnings_base.group_by_month(:created_at, format: '%m/%Y', time_zone: 'Africa/Luanda').count
+
+    # Contagem de problemas por tipo de documento
+    @problems_by_document_type = {
+      'Orçamentos' => all_problem_estimates.count,
+      'Faturas' => all_problem_invoices.count
+    }
+
+    # Top 5 clientes com mais avisos
+    customer_warnings = warnings_base.joins(:warnable).group('customers.name')
+                                     .select('customers.name, COUNT(*) as warning_count')
+                                     .order('warning_count DESC')
+                                     .limit(5)
+
+    @top_customers_warnings = {}
+    warnings_base.each do |warning|
+      customer_name = warning.warnable&.customer&.name
+      next unless customer_name
+      @top_customers_warnings[customer_name] ||= 0
+      @top_customers_warnings[customer_name] += 1
+    end
+    @top_customers_warnings = @top_customers_warnings.sort_by { |_, v| -v }.first(5).to_h
+
+    # Distribuição de avisos por hora do dia (quando foram criados)
+    @warnings_by_hour = all_warnings.group_by { |w| w.created_at.hour }.transform_values(&:count).sort.to_h
+
+    respond_to do |format|
+      format.html
+      format.pdf do
+        # Carregar dados sem paginação para o PDF
+        pdf_estimates = Estimate.where(created_at: @start_date..@end_date)
+                                 .where('discount_percentage > 0 OR below_margin_warned = true')
+                                 .includes(:customer, :created_by_user)
+                                 .order(created_at: :desc)
+                                 .limit(10)
+                                 .to_a
+
+        pdf_invoices = Invoice.where(created_at: @start_date..@end_date)
+                               .where('discount_percentage > 0 OR below_margin_warned = true')
+                               .includes(:customer, :created_by_user)
+                               .order(created_at: :desc)
+                               .limit(10)
+                               .to_a
+
+        pdf = PricingAnalysisReportPdf.new(
+          ActsAsTenant.current_tenant,
+          @start_date,
+          @end_date,
+          {
+            total_warnings: @total_warnings || 0,
+            total_profit_loss: @total_profit_loss || 0,
+            avg_margin_deficit: @avg_margin_deficit || 0,
+            total_discount_amount: @total_discount_amount || 0,
+            warnings_by_day: @warnings_by_day || {},
+            profit_loss_by_day: @profit_loss_by_day || {},
+            warnings_by_type: @warnings_by_type || {},
+            warnings_by_severity: @warnings_by_severity || {},
+            top_loss_warnings: @top_loss_warnings.to_a || [],
+            problem_estimates: pdf_estimates,
+            problem_invoices: pdf_invoices
+          }
+        ).generate
+
+        send_data pdf,
+                  filename: "analise_precos_#{@start_date.strftime('%Y%m%d')}_#{@end_date.strftime('%Y%m%d')}.pdf",
+                  type: 'application/pdf',
+                  disposition: 'inline'
+      end
+    end
+  end
+
   private
 
   def check_admin_access

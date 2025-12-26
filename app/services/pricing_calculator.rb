@@ -5,13 +5,23 @@ class PricingCalculator
 
   attr_reader :labor_cost, :material_cost, :purchase_price, :profit_margin
 
-  def initialize(labor_cost: 0, material_cost: 0, purchase_price: 0, profit_margin: nil)
+  def initialize(labor_cost: 0, material_cost: 0, purchase_price: 0, profit_margin: nil, tenant: nil)
     @labor_cost = labor_cost.to_f
     @material_cost = material_cost.to_f
     @purchase_price = purchase_price.to_f
 
+    # Get tenant's configured margin or use default
+    tenant_margin = tenant&.company_setting&.default_profit_margin
+
     # Convert percentage to decimal and validate range
-    margin_decimal = profit_margin ? (profit_margin.to_f / 100.0) : DEFAULT_PROFIT_MARGIN
+    margin_decimal = if profit_margin
+                       profit_margin.to_f / 100.0
+                     elsif tenant_margin
+                       tenant_margin.to_f / 100.0
+                     else
+                       DEFAULT_PROFIT_MARGIN
+                     end
+
     @profit_margin = [[margin_decimal, 0].max, MAX_PROFIT_MARGIN].min
   end
 
