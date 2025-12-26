@@ -212,7 +212,7 @@ class ReportsController < ApplicationController
     @top_customers_data = Customer.select('customers.name, COALESCE(SUM(invoices.total_value), 0) as total')
                                    .left_joins(:invoices)
                                    .group('customers.id, customers.name')
-                                   .order('total DESC')
+                                   .order(Arel.sql('COALESCE(SUM(invoices.total_value), 0) DESC'))
                                    .limit(10)
                                    .pluck(Arel.sql('customers.name'), Arel.sql('COALESCE(SUM(invoices.total_value), 0)'))
                                    .to_h
