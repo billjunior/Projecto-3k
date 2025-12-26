@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: crm-3k
+    env: ruby
+    buildCommand: "./bin/render-build.sh"
+    startCommand: "bundle exec puma -C config/puma.rb"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: crm-3k-db
+          property: connectionString
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_LOG_TO_STDOUT
+        value: true
+      - key: RAILS_SERVE_STATIC_FILES
+        value: true
+
+databases:
+  - name: crm-3k-db
+    databaseName: crm_3k_production
+    user: crm3k
+    plan: free
