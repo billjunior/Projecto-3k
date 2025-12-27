@@ -11,6 +11,11 @@
       </nav>
     </div>
     <div class="col-auto">
+      <%= link_to reports_inventory_items_path(format: :pdf, month: @selected_month, year: @selected_year),
+          class: 'btn btn-danger me-2',
+          target: '_blank' do %>
+        <i class="bi bi-file-pdf"></i> Exportar PDF
+      <% end %>
       <%= link_to inventory_items_path, class: 'btn btn-secondary' do %>
         <i class="bi bi-arrow-left"></i> Voltar
       <% end %>

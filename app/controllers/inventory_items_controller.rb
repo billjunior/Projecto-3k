@@ -116,6 +116,30 @@ class InventoryItemsController < ApplicationController
       @selected_month = month
       @selected_year = year
     end
+
+    respond_to do |format|
+      format.html
+      format.pdf do
+        pdf = InventoryAnalysisReportPdf.new(
+          ActsAsTenant.current_tenant,
+          @most_purchased,
+          @most_exits,
+          @selected_month,
+          @selected_year
+        ).generate
+
+        filename = if @selected_month && @selected_year
+          "analise_inventario_#{@selected_month}_#{@selected_year}_#{Time.current.strftime('%Y%m%d')}.pdf"
+        else
+          "analise_inventario_#{Time.current.strftime('%Y%m%d')}.pdf"
+        end
+
+        send_data pdf,
+                  filename: filename,
+                  type: 'application/pdf',
+                  disposition: 'inline'
+      end
+    end
   end
 
   def batch_exit
