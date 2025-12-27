@@ -132,18 +132,21 @@
           <table class="table table-hover mb-0">
             <thead>
               <tr>
-                <th>Data</th>
+                <th>Data do Movimento</th>
                 <th>Tipo</th>
                 <th class="text-end">Quantidade</th>
                 <th>Notas</th>
                 <th>Registado Por</th>
+                <th>Data de Registo</th>
                 <th class="text-end">Ações</th>
               </tr>
             </thead>
             <tbody>
               <% @movements.each do |movement| %>
                 <tr>
-                  <td><%= movement.date.strftime('%d/%m/%Y') %></td>
+                  <td>
+                    <strong><%= movement.date.strftime('%d/%m/%Y') %></strong>
+                  </td>
                   <td>
                     <% if movement.entry? %>
                       <span class="badge bg-success"><i class="bi bi-arrow-down-circle"></i> Entrada</span>
@@ -161,6 +164,11 @@
                     <% else %>
                       <span class="text-muted">-</span>
                     <% end %>
+                  </td>
+                  <td>
+                    <small class="text-muted">
+                      <i class="bi bi-clock"></i> <%= movement.created_at.strftime('%d/%m/%Y às %H:%M') %>
+                    </small>
                   </td>
                   <td class="text-end">
                     <%= link_to inventory_item_inventory_movement_path(@inventory_item, movement),

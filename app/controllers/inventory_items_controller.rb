@@ -118,6 +118,58 @@ class InventoryItemsController < ApplicationController
     end
   end
 
+  def batch_exit
+    # Process multiple inventory exits at once
+    items_data = params[:items]
+    general_notes = params[:notes]
+
+    if items_data.blank?
+      redirect_to inventory_items_path, alert: 'Nenhum item selecionado.'
+      return
+    end
+
+    success_count = 0
+    error_messages = []
+
+    ActiveRecord::Base.transaction do
+      items_data.each do |_index, item_params|
+        inventory_item = InventoryItem.find_by(id: item_params[:id])
+
+        unless inventory_item
+          error_messages << "Item ID #{item_params[:id]} não encontrado"
+          next
+        end
+
+        # Authorize the action
+        authorize inventory_item, :update?
+
+        quantity = item_params[:quantity].to_f
+
+        # Create exit movement with automatic date (today)
+        movement = inventory_item.inventory_movements.build(
+          movement_type: :exit,
+          quantity: quantity,
+          date: Date.today,
+          notes: general_notes.present? ? general_notes : "Saída em lote",
+          created_by_user: current_user
+        )
+
+        if movement.save
+          success_count += 1
+        else
+          error_messages << "#{inventory_item.product_name}: #{movement.errors.full_messages.join(', ')}"
+          raise ActiveRecord::Rollback
+        end
+      end
+    end
+
+    if error_messages.any?
+      redirect_to inventory_items_path, alert: "Erros: #{error_messages.join('; ')}"
+    else
+      redirect_to inventory_items_path, notice: "#{success_count} saída(s) processada(s) com sucesso. Data registada: #{Date.today.strftime('%d/%m/%Y')}."
+    end
+  end
+
   private
 
   def set_inventory_item

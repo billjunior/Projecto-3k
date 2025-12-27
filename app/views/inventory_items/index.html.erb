@@ -10,6 +10,9 @@
       </nav>
     </div>
     <div class="col-auto">
+      <button type="button" class="btn btn-warning me-2" id="batchExitBtn" style="display: none;" data-bs-toggle="modal" data-bs-target="#batchExitModal">
+        <i class="bi bi-box-arrow-up"></i> Retirar Selecionados (<span id="selectedCount">0</span>)
+      </button>
       <%= link_to inventory_items_path(format: :pdf), class: 'btn btn-danger me-2', target: '_blank' do %>
         <i class="bi bi-file-pdf"></i> Exportar PDF
       <% end %>
@@ -50,6 +53,9 @@
           <table class="table table-hover mb-0">
             <thead>
               <tr>
+                <th width="40">
+                  <input type="checkbox" id="selectAll" class="form-check-input">
+                </th>
                 <th>Fornecedor</th>
                 <th>Produto</th>
                 <th class="text-end">Qtd. Bruta</th>
@@ -64,6 +70,14 @@
               <% @inventory_items.each do |item| %>
                 <tr class="<%= 'table-danger' if item.stock_status == 'out_of_stock' %>
                            <%= 'table-warning' if item.stock_status == 'low_stock' %>">
+                  <td>
+                    <% if item.net_quantity > 0 %>
+                      <input type="checkbox" class="form-check-input item-checkbox"
+                             data-item-id="<%= item.id %>"
+                             data-item-name="<%= item.product_name %>"
+                             data-max-quantity="<%= item.net_quantity %>">
+                    <% end %>
+                  </td>
                   <td>
                     <i class="bi bi-phone"></i> <%= item.supplier_phone %>
                   </td>
@@ -127,3 +141,119 @@
     </div>
   </div>
 </div>
+
+<!-- Batch Exit Modal -->
+<div class="modal fade" id="batchExitModal" tabindex="-1" aria-labelledby="batchExitModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <%= form_with url: batch_exit_inventory_items_path, method: :post, local: true do |form| %>
+        <div class="modal-header bg-warning">
+          <h5 class="modal-title" id="batchExitModalLabel">
+            <i class="bi bi-box-arrow-up"></i> Retirar Múltiplos Itens do Inventário
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Configure as quantidades a retirar para cada item selecionado.
+            A data será registada automaticamente como hoje (<strong><%= Date.today.strftime('%d/%m/%Y') %></strong>).
+          </div>
+
+          <div id="selectedItemsList"></div>
+
+          <div class="mb-3">
+            <%= form.label :notes, 'Notas gerais (opcional)', class: 'form-label' %>
+            <%= form.text_area :notes, class: 'form-control', rows: 2,
+                placeholder: 'Ex: Saída para venda, consumo interno, etc.' %>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <%= form.submit 'Processar Saídas', class: 'btn btn-warning' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('turbo:load', function() {
+  const selectAllCheckbox = document.getElementById('selectAll');
+  const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+  const batchExitBtn = document.getElementById('batchExitBtn');
+  const selectedCount = document.getElementById('selectedCount');
+  const selectedItemsList = document.getElementById('selectedItemsList');
+
+  // Select All functionality
+  if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', function() {
+      itemCheckboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+      });
+      updateSelectedItems();
+    });
+  }
+
+  // Individual checkbox change
+  itemCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      updateSelectedItems();
+    });
+  });
+
+  function updateSelectedItems() {
+    const checked = document.querySelectorAll('.item-checkbox:checked');
+    const count = checked.length;
+
+    selectedCount.textContent = count;
+
+    if (count > 0) {
+      batchExitBtn.style.display = 'inline-block';
+      buildSelectedItemsForm(checked);
+    } else {
+      batchExitBtn.style.display = 'none';
+    }
+
+    // Update select all checkbox state
+    if (selectAllCheckbox) {
+      selectAllCheckbox.checked = count === itemCheckboxes.length && count > 0;
+    }
+  }
+
+  function buildSelectedItemsForm(checkedBoxes) {
+    let html = '<div class="table-responsive"><table class="table table-sm">';
+    html += '<thead><tr><th>Produto</th><th>Stock Disponível</th><th>Quantidade a Retirar</th></tr></thead>';
+    html += '<tbody>';
+
+    checkedBoxes.forEach((checkbox, index) => {
+      const itemId = checkbox.dataset.itemId;
+      const itemName = checkbox.dataset.itemName;
+      const maxQuantity = parseFloat(checkbox.dataset.maxQuantity);
+
+      html += `
+        <tr>
+          <td><strong>${itemName}</strong></td>
+          <td class="text-end">${maxQuantity.toFixed(2)}</td>
+          <td>
+            <input type="hidden" name="items[${index}][id]" value="${itemId}">
+            <input type="number"
+                   name="items[${index}][quantity]"
+                   class="form-control form-control-sm"
+                   min="0.01"
+                   max="${maxQuantity}"
+                   step="0.01"
+                   value="${maxQuantity}"
+                   required>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += '</tbody></table></div>';
+    selectedItemsList.innerHTML = html;
+  }
+
+  // Initialize on page load
+  updateSelectedItems();
+});
+</script>

@@ -84,6 +84,7 @@ Rails.application.routes.draw do
   resources :inventory_items do
     collection do
       get :reports
+      post :batch_exit
     end
     resources :inventory_movements, only: [:create, :destroy]
   end
