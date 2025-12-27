@@ -98,7 +98,12 @@ class InvoicesController < ApplicationController
       labor_cost: params[:labor_cost],
       material_cost: params[:material_cost],
       purchase_price: params[:purchase_price],
-      profit_margin: params[:profit_margin]
+      packaging_cost: params[:packaging_cost],
+      sales_commission_percentage: params[:sales_commission_percentage],
+      sales_tax_percentage: params[:sales_tax_percentage],
+      card_fee_percentage: params[:card_fee_percentage],
+      contribution_margin: params[:contribution_margin],
+      tenant: ActsAsTenant.current_tenant
     )
 
     respond_to do |format|

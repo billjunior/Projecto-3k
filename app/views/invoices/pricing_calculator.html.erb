@@ -19,46 +19,78 @@
         </div>
         <div class="card-body">
           <%= form_with url: calculate_price_invoices_path, method: :post, data: { turbo_frame: 'pricing_result' } do |f| %>
+            <h6 class="text-primary mb-3"><i class="bi bi-cash-stack"></i> Custos Variáveis Fixos (AOA)</h6>
+
             <div class="mb-3">
-              <label class="form-label">Custo de Mão de Obra (AOA)</label>
+              <label class="form-label">Mão de Obra</label>
               <input type="number" name="labor_cost" class="form-control" step="0.01" min="0" placeholder="0.00" value="0">
-              <small class="form-text text-muted">Custo total de trabalho/serviço</small>
+              <small class="form-text text-muted">Custo de trabalho</small>
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Custo de Material (AOA)</label>
+              <label class="form-label">Matéria-Prima</label>
               <input type="number" name="material_cost" class="form-control" step="0.01" min="0" placeholder="0.00" value="0">
-              <small class="form-text text-muted">Custo de materiais e insumos</small>
+              <small class="form-text text-muted">Materiais e insumos</small>
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Preço de Compra (AOA)</label>
+              <label class="form-label">Preço de Compra</label>
               <input type="number" name="purchase_price" class="form-control" step="0.01" min="0" placeholder="0.00" value="0">
-              <small class="form-text text-muted">Preço de aquisição do produto</small>
+              <small class="form-text text-muted">Preço de aquisição</small>
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Margem de Lucro (%)</label>
+              <label class="form-label">Embalagem</label>
+              <input type="number" name="packaging_cost" class="form-control" step="0.01" min="0" placeholder="0.00" value="0">
+              <small class="form-text text-muted">Custo de embalagem</small>
+            </div>
+
+            <hr>
+
+            <h6 class="text-warning mb-3"><i class="bi bi-percent"></i> Custos Variáveis Percentuais (%)</h6>
+
+            <div class="mb-3">
+              <label class="form-label">Comissão de Vendas (%)</label>
+              <input type="number" name="sales_commission_percentage" class="form-control" step="0.01" min="0" max="100" placeholder="0.00" value="0">
+              <small class="form-text text-muted">% sobre o preço de venda</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Impostos sobre Vendas (%)</label>
+              <input type="number" name="sales_tax_percentage" class="form-control" step="0.01" min="0" max="100" placeholder="0.00" value="0">
+              <small class="form-text text-muted">IVA, INSS, etc.</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Taxa de Cartão (%)</label>
+              <input type="number" name="card_fee_percentage" class="form-control" step="0.01" min="0" max="100" placeholder="0.00" value="0">
+              <small class="form-text text-muted">Taxa de máquina de cartão</small>
+            </div>
+
+            <hr>
+
+            <div class="mb-3">
+              <label class="form-label">Margem de Contribuição Desejada (%)</label>
               <div class="input-group">
-                <input type="number" name="profit_margin" id="profit_margin_input" class="form-control" step="1" min="0" max="150" placeholder="65" value="65">
+                <input type="number" name="contribution_margin" id="contribution_margin_input" class="form-control" step="1" min="10" max="80" placeholder="40" value="40">
                 <span class="input-group-text">%</span>
               </div>
-              <input type="range" name="profit_margin_range" id="profit_margin_range" class="form-range mt-2" min="0" max="150" step="5" value="65">
-              <small class="form-text text-muted">Escolha entre 0% e 150% (padrão: 65%)</small>
+              <input type="range" name="contribution_margin_range" id="contribution_margin_range" class="form-range mt-2" min="10" max="80" step="5" value="40">
+              <small class="form-text text-muted">Entre 10% e 80% (padrão: 40%)</small>
             </div>
 
             <script>
               // Sincronizar range slider com input number
-              const rangeInput = document.getElementById('profit_margin_range');
-              const numberInput = document.getElementById('profit_margin_input');
+              const rangeInput = document.getElementById('contribution_margin_range');
+              const numberInput = document.getElementById('contribution_margin_input');
 
               rangeInput.addEventListener('input', function() {
                 numberInput.value = this.value;
               });
 
               numberInput.addEventListener('input', function() {
-                let value = parseInt(this.value) || 65;
-                value = Math.max(0, Math.min(150, value));
+                let value = parseInt(this.value) || 40;
+                value = Math.max(10, Math.min(80, value));
                 rangeInput.value = value;
                 this.value = value;
               });
@@ -73,20 +105,24 @@
 
       <div class="card mt-4">
         <div class="card-header bg-info text-white">
-          <h6 class="mb-0"><i class="bi bi-info-circle"></i> Como Funciona</h6>
+          <h6 class="mb-0"><i class="bi bi-info-circle"></i> Como Funciona - Margem de Contribuição</h6>
         </div>
         <div class="card-body">
-          <p class="mb-2"><strong>Margem de Lucro:</strong> Configurável de 0% até 150% (padrão: 65%)</p>
-          <p class="mb-2"><strong>Arredondamento:</strong> Valores arredondados para múltiplos de 100 AOA (padrão do mercado angolano)</p>
-          <p class="mb-0"><strong>Fórmula:</strong> Preço Sugerido = (Custo Total) × (1 + Margem/100) ≈ 100</p>
+          <p class="mb-2"><strong>Metodologia:</strong> Precificação por Margem de Contribuição</p>
+          <p class="mb-2"><strong>Fórmula:</strong> PV = CV ÷ (1 - MC%)</p>
+          <p class="mb-2"><strong>MC% Configurável:</strong> Entre 10% e 80% (padrão: 40%)</p>
+          <p class="mb-0"><strong>Arredondamento:</strong> Múltiplos de 100 AOA</p>
           <hr>
-          <h6>Exemplo com 65% de margem:</h6>
+          <h6>Exemplo com 40% de margem:</h6>
           <ul class="mb-0">
             <li>Mão de Obra: 5.000 AOA</li>
             <li>Material: 3.000 AOA</li>
             <li>Compra: 2.000 AOA</li>
-            <li><strong>Custo Total:</strong> 10.000 AOA</li>
-            <li><strong>Preço Sugerido:</strong> 16.500 AOA → 16.500 AOA</li>
+            <li>Embalagem: 1.000 AOA</li>
+            <li><strong>CV Fixos:</strong> 11.000 AOA</li>
+            <li><strong>Cálculo:</strong> 11.000 ÷ (1 - 0,40) = 18.333,33</li>
+            <li><strong>Preço Sugerido:</strong> 18.400 AOA (arredondado)</li>
+            <li><strong>MCu:</strong> 7.400 AOA (40,2%)</li>
           </ul>
         </div>
       </div>
@@ -118,7 +154,7 @@
                     <tr>
                       <td><%= product.name %></td>
                       <td class="text-end">
-                        <%= number_to_currency(product.labor_cost + product.material_cost + product.purchase_price, unit: 'AOA', separator: ',', delimiter: '.') %>
+                        <%= number_to_currency(product.total_variable_cost, unit: 'AOA', separator: ',', delimiter: '.') %>
                       </td>
                       <td class="text-end">
                         <strong class="text-success">
