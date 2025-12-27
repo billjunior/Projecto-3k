@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_27_160000) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_27_210000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -261,6 +261,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_27_160000) do
     t.decimal "subtotal_before_discount", precision: 10, scale: 2
     t.boolean "below_margin_warned", default: false
     t.datetime "below_margin_warned_at"
+    t.text "notes"
     t.index ["below_margin_warned"], name: "index_invoices_on_below_margin_warned"
     t.index ["created_by_user_id"], name: "index_invoices_on_created_by_user_id"
     t.index ["customer_id"], name: "index_invoices_on_customer_id"
