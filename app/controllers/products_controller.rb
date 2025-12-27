@@ -57,6 +57,10 @@ class ProductsController < ApplicationController
   end
 
   def product_params
-    params.require(:product).permit(:name, :category, :unit, :base_price, :active, :labor_cost, :material_cost, :purchase_price)
+    params.require(:product).permit(
+      :name, :category, :unit, :base_price, :active,
+      :labor_cost, :material_cost, :purchase_price, :packaging_cost,
+      :sales_commission_percentage, :sales_tax_percentage, :card_fee_percentage
+    )
   end
 end

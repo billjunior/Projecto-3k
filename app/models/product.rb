@@ -23,21 +23,44 @@ class Product < ApplicationRecord
 
   def suggested_price
     PricingCalculator.calculate(
-      labor_cost: labor_cost,
-      material_cost: material_cost,
-      purchase_price: purchase_price
+      labor_cost: labor_cost || 0,
+      material_cost: material_cost || 0,
+      purchase_price: purchase_price || 0,
+      packaging_cost: packaging_cost || 0,
+      sales_commission_percentage: sales_commission_percentage || 0,
+      sales_tax_percentage: sales_tax_percentage || 0,
+      card_fee_percentage: card_fee_percentage || 0,
+      tenant: tenant
     )
   end
 
   def pricing_breakdown
     PricingCalculator.new(
-      labor_cost: labor_cost,
-      material_cost: material_cost,
-      purchase_price: purchase_price
+      labor_cost: labor_cost || 0,
+      material_cost: material_cost || 0,
+      purchase_price: purchase_price || 0,
+      packaging_cost: packaging_cost || 0,
+      sales_commission_percentage: sales_commission_percentage || 0,
+      sales_tax_percentage: sales_tax_percentage || 0,
+      card_fee_percentage: card_fee_percentage || 0,
+      tenant: tenant
     ).breakdown
   end
 
   def has_cost_data?
-    labor_cost.positive? || material_cost.positive? || purchase_price.positive?
+    (labor_cost && labor_cost.positive?) ||
+    (material_cost && material_cost.positive?) ||
+    (purchase_price && purchase_price.positive?) ||
+    (packaging_cost && packaging_cost.positive?)
+  end
+
+  # Custo Variável Total (sem percentuais)
+  def total_variable_cost
+    (labor_cost || 0) + (material_cost || 0) + (purchase_price || 0) + (packaging_cost || 0)
+  end
+
+  # Percentual total de custos variáveis percentuais
+  def total_percentage_costs
+    (sales_commission_percentage || 0) + (sales_tax_percentage || 0) + (card_fee_percentage || 0)
   end
 end
