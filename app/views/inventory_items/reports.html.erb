@@ -48,6 +48,79 @@
     </div>
   </div>
 
+  <!-- Charts Section -->
+  <div class="row mb-4">
+    <!-- Entries and Exits Over Time -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-graph-up-arrow"></i> Movimentos de Inventário ao Longo do Tempo
+            <% if @selected_month && @selected_year %>
+              <small>- <%= nome_mes(@selected_month) %> <%= @selected_year %></small>
+            <% else %>
+              <small>- Últimos 30 dias</small>
+            <% end %>
+          </h5>
+        </div>
+        <div class="card-body">
+          <%= line_chart [
+            { name: "Entradas", data: @entries_by_date, color: "#27AE60" },
+            { name: "Saídas", data: @exits_by_date, color: "#E74C3C" }
+          ],
+          thousands: ".",
+          decimal: ",",
+          library: {
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: "function(value) { return value.toFixed(2).replace('.', ','); }"
+                }
+              }
+            }
+          } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Comparison -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-pie-chart"></i> Comparação Total
+          </h5>
+        </div>
+        <div class="card-body">
+          <%= pie_chart @movements_comparison,
+              colors: ["#27AE60", "#E74C3C"],
+              thousands: ".",
+              decimal: "," %>
+
+          <div class="mt-3">
+            <div class="d-flex justify-content-between mb-2">
+              <span><i class="bi bi-circle-fill text-success"></i> Entradas:</span>
+              <strong><%= number_with_precision(@movements_comparison['Entradas'], precision: 2, delimiter: ".", separator: ",") %></strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span><i class="bi bi-circle-fill text-danger"></i> Saídas:</span>
+              <strong><%= number_with_precision(@movements_comparison['Saídas'], precision: 2, delimiter: ".", separator: ",") %></strong>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between">
+              <span><strong>Diferença:</strong></span>
+              <% diff = @movements_comparison['Entradas'] - @movements_comparison['Saídas'] %>
+              <strong class="<%= diff >= 0 ? 'text-success' : 'text-danger' %>">
+                <%= number_with_precision(diff, precision: 2, delimiter: ".", separator: ",", prefix: diff >= 0 ? '+' : '') %>
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Most Purchased Products (Entries) -->
   <div class="card mb-4">
     <div class="card-header bg-success text-white">

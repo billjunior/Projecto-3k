@@ -105,6 +105,9 @@ class InventoryItemsController < ApplicationController
                                .order('total_exits DESC')
                                .limit(10)
 
+    # Base query for movements
+    movements_base = InventoryMovement.all
+
     # Filter by month if requested
     if params[:month].present? && params[:year].present?
       month = params[:month].to_i
@@ -112,10 +115,38 @@ class InventoryItemsController < ApplicationController
 
       @most_purchased = @most_purchased.merge(InventoryMovement.by_month(month, year))
       @most_exits = @most_exits.merge(InventoryMovement.by_month(month, year))
+      movements_base = movements_base.by_month(month, year)
 
       @selected_month = month
       @selected_year = year
+    else
+      # Last 30 days for charts when no filter
+      movements_base = movements_base.where('date >= ?', 30.days.ago)
     end
+
+    # Data for charts - Entries and Exits by date
+    @entries_by_date = movements_base.where(movement_type: :entry)
+                                     .group_by_day(:date, time_zone: 'Africa/Luanda')
+                                     .sum(:quantity)
+
+    @exits_by_date = movements_base.where(movement_type: :exit)
+                                   .group_by_day(:date, time_zone: 'Africa/Luanda')
+                                   .sum(:quantity)
+
+    # Movement comparison
+    @movements_comparison = {
+      'Entradas' => movements_base.where(movement_type: :entry).sum(:quantity),
+      'Saídas' => movements_base.where(movement_type: :exit).sum(:quantity)
+    }
+
+    # Daily movement data for PDF table
+    @daily_movements = movements_base.select(
+      "DATE(date) as movement_date",
+      "SUM(CASE WHEN movement_type = 0 THEN quantity ELSE 0 END) as entries",
+      "SUM(CASE WHEN movement_type = 1 THEN quantity ELSE 0 END) as exits"
+    ).group("DATE(date)")
+     .order("DATE(date) DESC")
+     .limit(30)
 
     respond_to do |format|
       format.html
@@ -124,6 +155,8 @@ class InventoryItemsController < ApplicationController
           ActsAsTenant.current_tenant,
           @most_purchased,
           @most_exits,
+          @daily_movements,
+          @movements_comparison,
           @selected_month,
           @selected_year
         ).generate

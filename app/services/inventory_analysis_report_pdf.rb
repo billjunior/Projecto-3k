@@ -2,10 +2,12 @@ require 'prawn'
 require 'prawn/table'
 
 class InventoryAnalysisReportPdf < BasePdf
-  def initialize(tenant, most_purchased, most_exits, selected_month = nil, selected_year = nil)
+  def initialize(tenant, most_purchased, most_exits, daily_movements, movements_comparison, selected_month = nil, selected_year = nil)
     super(tenant)
     @most_purchased = most_purchased.to_a
     @most_exits = most_exits.to_a
+    @daily_movements = daily_movements.to_a
+    @movements_comparison = movements_comparison || {}
     @selected_month = selected_month
     @selected_year = selected_year
   end
@@ -196,6 +198,116 @@ class InventoryAnalysisReportPdf < BasePdf
         pdf.text "Nenhuma saída registada no período selecionado.", style: :italic, color: '999999'
       end
 
+      # New page for daily movements
+      if @daily_movements.any?
+        pdf.start_new_page
+
+        pdf.font_size 14
+        pdf.fill_color '3498DB'
+        pdf.text "📊 Movimentos Diários de Entrada e Saída", style: :bold
+        pdf.fill_color '000000'
+        pdf.move_down 5
+
+        pdf.font_size 10
+        period_text = if @selected_month && @selected_year
+          month_name = nome_mes_helper(@selected_month)
+          "#{month_name} #{@selected_year}"
+        else
+          "Últimos 30 dias"
+        end
+        pdf.text "Período: #{period_text}", color: '555555'
+        pdf.move_down 10
+
+        pdf.font_size 8
+        movements_table_data = [["Data", "Entradas", "Saídas", "Diferença"]]
+
+        total_entries = 0
+        total_exits = 0
+
+        @daily_movements.each do |movement|
+          entries = movement.respond_to?(:entries) ? movement.entries.to_f : 0
+          exits = movement.respond_to?(:exits) ? movement.exits.to_f : 0
+          diff = entries - exits
+
+          total_entries += entries
+          total_exits += exits
+
+          date_str = if movement.respond_to?(:movement_date)
+            movement.movement_date.is_a?(String) ? Date.parse(movement.movement_date).strftime('%d/%m/%Y') : movement.movement_date.strftime('%d/%m/%Y')
+          else
+            'N/A'
+          end
+
+          movements_table_data << [
+            date_str,
+            format_number(entries),
+            format_number(exits),
+            "#{diff >= 0 ? '+' : ''}#{format_number(diff)}"
+          ]
+        end
+
+        # Totals row
+        total_diff = total_entries - total_exits
+        movements_table_data << [
+          { content: "TOTAL:", font_style: :bold },
+          { content: format_number(total_entries), font_style: :bold },
+          { content: format_number(total_exits), font_style: :bold },
+          { content: "#{total_diff >= 0 ? '+' : ''}#{format_number(total_diff)}", font_style: :bold }
+        ]
+
+        pdf.table(movements_table_data,
+          header: true,
+          cell_style: { padding: 4, size: 8 },
+          column_widths: [150, 150, 150, 150]) do |table|
+          table.row(0).font_style = :bold
+          table.row(0).background_color = 'E3F2FD'
+          table.row(0).align = :center
+
+          # Totals row styling
+          table.row(-1).background_color = 'BBDEFB'
+          table.row(-1).font_style = :bold
+
+          # Align numeric columns
+          table.columns(1..3).align = :right
+
+          # Color code difference column
+          table.column(3).filter do |cell|
+            next if cell.row == 0 || cell.row == movements_table_data.length - 1 # Skip header and total
+            value = cell.content.gsub(/[^\d\-,]/, '').gsub(',', '.').to_f
+            if value > 0
+              cell.text_color = '27AE60'
+            elsif value < 0
+              cell.text_color = 'E74C3C'
+            end
+          end
+        end
+
+        # Summary stats
+        pdf.move_down 15
+        pdf.font_size 9
+        pdf.fill_color '555555'
+
+        summary_data = [
+          ["Total de Entradas:", format_number(total_entries)],
+          ["Total de Saídas:", format_number(total_exits)],
+          ["Diferença (Saldo):", "#{total_diff >= 0 ? '+' : ''}#{format_number(total_diff)}"]
+        ]
+
+        pdf.table(summary_data,
+          cell_style: { borders: [], padding: 3, size: 9 },
+          column_widths: [200, 150]) do |table|
+          table.column(0).font_style = :bold
+          table.column(1).align = :right
+          # Color code the difference
+          if total_diff >= 0
+            table.row(2).column(1).text_color = '27AE60'
+          else
+            table.row(2).column(1).text_color = 'E74C3C'
+          end
+        end
+        pdf.fill_color '000000'
+      end
+
       # Footer with insights
       pdf.move_down 30
       pdf.stroke_horizontal_rule
@@ -216,6 +328,21 @@ class InventoryAnalysisReportPdf < BasePdf
 
         low_stock_count = @most_exits.count { |i| i.minimum_stock && (i.net_quantity || 0) <= i.minimum_stock }
         insights << "• Produtos com stock baixo na lista: #{low_stock_count}" if low_stock_count > 0
+      end
+
+      # Add movement insights
+      if @movements_comparison.any?
+        total_entries = @movements_comparison['Entradas'] || 0
+        total_exits = @movements_comparison['Saídas'] || 0
+        balance = total_entries - total_exits
+
+        if balance > 0
+          insights << "• Saldo positivo: +#{format_number(balance)} unidades (mais entradas que saídas)"
+        elsif balance < 0
+          insights << "• Saldo negativo: #{format_number(balance)} unidades (mais saídas que entradas)"
+        else
+          insights << "• Saldo equilibrado: entradas e saídas equivalentes"
+        end
       end
 
       pdf.text "Observações:", style: :bold if insights.any?
