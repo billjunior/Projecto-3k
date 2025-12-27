@@ -33,7 +33,9 @@ class CompanySettingsController < ApplicationController
   def company_settings_params
     params.require(:company_setting).permit(
       :company_name, :address, :email, :phone, :iban, :company_tagline, :logo,
-      :director_general_email, :financial_director_email,
+      :director_general_email, :financial_director_email, :default_profit_margin,
+      :director_general_phone, :director_general_whatsapp,
+      :financial_director_phone, :financial_director_whatsapp,
       phones: [], emails: [], ibans: [],
       bank_accounts: [:bank_name, :account_number, :iban, :swift, :notes]
     )

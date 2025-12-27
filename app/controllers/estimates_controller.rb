@@ -105,11 +105,24 @@ class EstimatesController < ApplicationController
       @estimate.update(status: 'aprovado', approved_by: current_user.email, approved_at: Time.current)
 
       # Send email to customer
+      customer_notified = false
       if @estimate.customer.email.present?
         EstimateMailer.estimate_approved(@estimate).deliver_later
+        customer_notified = true
       end
 
-      redirect_to @estimate, notice: 'Orçamento aprovado com sucesso. Email enviado ao cliente.'
+      # Send notifications to directors (email, WhatsApp, SMS)
+      notifier = EstimateApprovalNotifier.new(@estimate)
+      directors_notified = notifier.notify_directors
+
+      # Build success message
+      message = 'Orçamento aprovado com sucesso.'
+      message += ' Email enviado ao cliente.' if customer_notified
+      if directors_notified.any?
+        message += " Notificações enviadas para: #{directors_notified.join(', ')}."
+      end
+
+      redirect_to @estimate, notice: message
     else
       redirect_to @estimate, alert: 'Este orçamento não pode ser aprovado no momento.'
     end
